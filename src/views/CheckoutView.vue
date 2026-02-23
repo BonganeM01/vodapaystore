@@ -1,3 +1,5 @@
+<!-- src/views/CheckoutView.vue -->
+
 <script setup>
 // ============================================================
 // CheckoutView.vue — Checkout page

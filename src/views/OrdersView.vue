@@ -1,3 +1,4 @@
+<!-- src/views/OrdersView.vue -->
 <script setup>
 // OrdersView.vue — Order history page
 import { ref, onMounted } from 'vue'

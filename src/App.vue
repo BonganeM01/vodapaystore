@@ -1,3 +1,4 @@
+<!--src/App.vue-->
 <script setup>
 // ============================================================
 // App.vue — Root component  (MOCK MODE)

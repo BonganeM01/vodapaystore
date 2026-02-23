@@ -1,3 +1,4 @@
+<!-- src/views/HomeView.vue -->
 <script setup>
 // ============================================================
 // HomeView.vue — Product listing page

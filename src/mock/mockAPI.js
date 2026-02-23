@@ -1,12 +1,9 @@
-// src/mock/mockApi.js  (H5 side)
+// src/mock/mockApi.js 
 //
 // Simulates all backend responses with realistic delays.
-// Shares the same mock user as the mini program so both
-// layers always agree on who is logged in.
-//
-// Replace each function in production with a real axios call.
 
-// ── Shared mock data ───────────────────────────────────────────
+
+// Shared mock data
 export const MOCK_USER = {
   id:       'mock-user-001',
   name:     'Thabo Nkosi',

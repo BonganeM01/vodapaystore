@@ -1,3 +1,5 @@
+<!-- src/views/CartView.vue -->
+
 <script setup>
 // ============================================================
 // CartView.vue — Shopping cart and checkout trigger

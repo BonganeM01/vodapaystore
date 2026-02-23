@@ -19,5 +19,9 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    host: true,
+    allowedHosts: [
+      'nonplanetary-travelled-dewitt.ngrok-free.dev',
+    ],
   },
 })

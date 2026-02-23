@@ -1,3 +1,4 @@
+<!-- src/views/ProfileView.vue -->
 <script setup>
 // ============================================================
 // ProfileView.vue — User profile

@@ -30,6 +30,8 @@ export function useAuth() {
       // ── Step 1: H5 asks Mini Program for an auth code ─────────
       // The Mini Program will show a mock "consent screen" alert,
       // then reply with AUTH_CODE_SUCCESS containing the mock code.
+
+      
       window.alert(
         '📨 H5 → Mini Program\n\n' +
         'Sending: GET_AUTH_CODE\n\n' +
