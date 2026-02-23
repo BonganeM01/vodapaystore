@@ -1,48 +1,79 @@
 <script setup>
 // ============================================================
-// App.vue — Root component
+// App.vue — Root component  (MOCK MODE)
 //
-// This is where the VodaPay bridge is INITIALISED.
-// It must happen at the root level so all child components
-// can use the bridge via useVodaPayBridge().
+// The bridge is initialised here. When the Mini Program sends
+// MINI_PROGRAM_CONTEXT (which includes the pre-loaded mock user),
+// we populate the Pinia auth store so every page sees the user
+// as already logged in — no manual sign-in step required.
+//
+// A window.alert() is shown at two key moments:
+//   1. When BRIDGE_READY is sent (H5 → Mini Program)
+//   2. When MINI_PROGRAM_CONTEXT is received (Mini Program → H5)
 // ============================================================
 
 import { onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useVodaPayBridge } from '@/composables/useVodaPayBridge'
 import { useAuthStore } from '@/stores/auth'
+import { useCartStore } from '@/stores/cart'
 import AppHeader from '@/components/AppHeader.vue'
 import AppTabBar from '@/components/AppTabBar.vue'
 
-const router = useRouter()
+const router    = useRouter()
 const authStore = useAuthStore()
+const cartStore = useCartStore()
 const { initBridge, onMessage } = useVodaPayBridge()
 
-// ── Clean-up functions for message subscriptions ───────────
 const cleanups = []
 
 onMounted(() => {
-  // ✅ STEP 1: Initialise the bridge.
-  // This sets my.onMessage and sends BRIDGE_READY to the Mini Program.
-  // The Mini Program will respond with MINI_PROGRAM_CONTEXT.
+  // ✅ Initialise bridge — this sets my.onMessage and sends
+  // BRIDGE_READY to the Mini Program (see useVodaPayBridge.js).
+  // The Mini Program receives it in _onBridgeReady() in index.js.
   initBridge()
 
-  // ── Listen for initial Mini Program context ─────────────
-  // This fires once after BRIDGE_READY, giving us the user state
-  // the Mini Program already knows about (userId, cartCount, deep links).
+  // ── Listen for the initial context from the Mini Program ──
+  // Fired once after BRIDGE_READY. Contains the mock user that
+  // was pre-loaded in app.js globalData on mini program launch.
   cleanups.push(
     onMessage('MINI_PROGRAM_CONTEXT', (data) => {
-      console.log('[App] Received mini program context:', data)
+      console.log('[App] Received MINI_PROGRAM_CONTEXT:', data)
+
+      // ✅ ALERT: Show what the Mini Program sent us
+      window.alert(
+        '📩 Mini Program → H5\n\n' +
+        'Received: MINI_PROGRAM_CONTEXT\n\n' +
+        `User: ${data.userInfo?.nickName || 'Guest'}\n` +
+        `Logged in: ${data.isLoggedIn}\n` +
+        `User ID: ${data.userId || 'none'}\n` +
+        `Cart items: ${data.cartCount || 0}\n\n` +
+        'Populating Pinia auth store with this user…'
+      )
+
+      // Populate auth store from Mini Program context
+      // This is what makes the user appear pre-logged-in on the H5
       authStore.setFromMiniProgramContext(data)
 
-      // If launched via deep link with a product SKU, navigate there
-      if (data.deepLink?.sku) {
-        router.push(`/product/${data.deepLink.sku}`)
+      // Restore cart count from Mini Program
+      if (data.cartCount > 0) {
+        // Cart items are managed in the H5 store —
+        // just update the count badge indicator here
+        console.log('[App] Restoring cart count:', data.cartCount)
       }
 
-      // If deep link asks for orders view
-      if (data.deepLink?.view === 'orders') {
+      // Handle deep link / query param routing
+      if (data.deepLink?.sku) {
+        router.push(`/product/${data.deepLink.sku}`)
+      } else if (data.deepLink?.view === 'checkout') {
+        router.push('/checkout')
+      } else if (data.deepLink?.view === 'orders') {
         router.push('/orders')
+      }
+
+      // If mini program requires login but user is not in store
+      if (data.deepLink?.requireLogin && !authStore.isLoggedIn) {
+        router.push({ path: '/', query: { loginRequired: '1' } })
       }
     })
   )
@@ -56,8 +87,6 @@ onUnmounted(() => {
 <template>
   <main class="app-shell">
     <AppHeader />
-
-    <!-- RouterView is the page content area -->
     <section class="page-content">
       <RouterView v-slot="{ Component }">
         <Transition name="page" mode="out-in">
@@ -65,7 +94,6 @@ onUnmounted(() => {
         </Transition>
       </RouterView>
     </section>
-
     <AppTabBar />
   </main>
 </template>
@@ -85,7 +113,6 @@ onUnmounted(() => {
   overscroll-behavior: contain;
 }
 
-/* Page transition */
 .page-enter-active,
 .page-leave-active {
   transition: opacity 0.18s ease, transform 0.18s ease;

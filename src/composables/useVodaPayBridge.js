@@ -78,9 +78,17 @@ export function useVodaPayBridge() {
 
     bridgeReady.value = true
 
+    // ✅ ALERT: Confirm bridge is live before sending BRIDGE_READY
+    window.alert(
+      '🔗 Bridge Initialised\n\n' +
+      'my.onMessage is now registered.\n\n' +
+      '📨 H5 → Mini Program\n' +
+      'Sending: BRIDGE_READY\n\n' +
+      'The Mini Program will respond with MINI_PROGRAM_CONTEXT\n' +
+      'containing the pre-loaded mock user (Thabo Nkosi).'
+    )
+
     // ✅ Signal to the Mini Program that the H5 is ready.
-    // The Mini Program will respond with MINI_PROGRAM_CONTEXT
-    // containing userId, cartCount, deep link data, etc.
     sendToMiniProgram('BRIDGE_READY', { timestamp: Date.now() })
     console.log('[Bridge] Initialised and signalled ready')
   }

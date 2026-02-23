@@ -1,59 +1,84 @@
-// src/composables/useAuth.js
+// src/composables/useAuth.js  (MOCK MODE)
 //
-// Handles the complete VodaPay OAuth authentication flow:
+// Replaces all real backend/VodaPay API calls with mock data.
+// Uses window.alert() to show communication steps in the H5
+// (complementing the my.alert() calls on the Mini Program side).
 //
-//   1. H5 sends GET_AUTH_CODE → Mini Program
-//   2. Mini Program calls my.getAuthCode() → VodaPay shows consent UI
-//   3. VodaPay returns authCode → Mini Program → H5 (AUTH_CODE_SUCCESS)
-//   4. H5 sends authCode to YOUR backend API
-//   5. Backend exchanges authCode for accessToken via VodaPay's
-//      /v2/authorizations/applyToken endpoint
-//   6. Backend returns user profile → H5 stores it in the auth store
+// Flow overview:
+//   H5 sends GET_AUTH_CODE  ──→  Mini Program (my.alert shown there)
+//   Mini Program responds    ──→  H5 receives AUTH_CODE_SUCCESS
+//   H5 "exchanges" code      ──→  mock API returns MOCK_USER
+//   H5 stores user in Pinia  ──→  UI updates to logged-in state
 
 import { ref } from 'vue'
 import { useVodaPayBridge } from './useVodaPayBridge'
 import { useAuthStore } from '@/stores/auth'
-import axios from 'axios'
-
-// Your backend base URL — replace with actual endpoint
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://api.your-backend.com'
+import { mockExchangeAuthCode, mockGetOpenUserInfo, MOCK_USER } from '@/mock/mockAPI'
 
 export function useAuth() {
   const { sendToMiniProgram, onMessage } = useVodaPayBridge()
   const authStore = useAuthStore()
-  const loading = ref(false)
-  const error = ref(null)
+  const loading   = ref(false)
+  const error     = ref(null)
 
-  // ── Trigger the full login flow ────────────────────────────
+  // ── Full login flow ───────────────────────────────────────────
   async function login() {
     loading.value = true
-    error.value = null
+    error.value   = null
 
     try {
-      // ✅ Step 1: Request auth code from VodaPay via Mini Program bridge
-      // Mini Program will call my.getAuthCode() and return AUTH_CODE_SUCCESS
+      // ── Step 1: H5 asks Mini Program for an auth code ─────────
+      // The Mini Program will show a mock "consent screen" alert,
+      // then reply with AUTH_CODE_SUCCESS containing the mock code.
+      window.alert(
+        '📨 H5 → Mini Program\n\n' +
+        'Sending: GET_AUTH_CODE\n\n' +
+        'The Mini Program will now simulate the VodaPay consent screen.\n' +
+        'Watch for the 🟡 [MOCK] alert on the native layer.'
+      )
+
       const authData = await requestAuthCode()
 
-      // ✅ Step 4 & 5: Send authCode to your backend.
-      // NEVER exchange tokens client-side — always do this server-to-server.
-      const userProfile = await exchangeAuthCodeForUser(authData.authCode)
+      // ── Step 2: H5 receives auth code, shows it ───────────────
+      window.alert(
+        '📩 Mini Program → H5\n\n' +
+        'Received: AUTH_CODE_SUCCESS\n\n' +
+        `Auth Code: ${authData.authCode}\n\n` +
+        'Now exchanging with mock API for user profile…'
+      )
 
-      // ✅ Step 6: Store user in Pinia and mark as logged in
-      authStore.setUser(userProfile)
-      return userProfile
+      // ── Step 3: Exchange auth code with mock API ───────────────
+      // In production: POST /auth/vodapay { authCode }
+      const { user, token } = await mockExchangeAuthCode(authData.authCode)
+
+      // ── Step 4: Store user in Pinia ───────────────────────────
+      authStore.setUser(user)
+      authStore.setUserInfo(user)
+      authStore.setToken(token)
+
+      window.alert(
+        '✅ Login Complete (Mock)\n\n' +
+        `Welcome, ${user.nickName}!\n` +
+        `User ID: ${user.id}\n` +
+        `Token: ${token}\n\n` +
+        'User is now stored in the Pinia auth store.'
+      )
+
+      return user
 
     } catch (err) {
       error.value = err.message || 'Login failed'
+      window.alert(`❌ Login Error\n\n${error.value}`)
       throw err
     } finally {
       loading.value = false
     }
   }
 
-  // ── Request auth code via bridge ───────────────────────────
+  // ── Request auth code via bridge ──────────────────────────────
+  // Sends GET_AUTH_CODE to Mini Program and waits for the reply.
   function requestAuthCode() {
     return new Promise((resolve, reject) => {
-      // Subscribe to success/fail responses from Mini Program
       const unsubSuccess = onMessage('AUTH_CODE_SUCCESS', (data) => {
         unsubSuccess()
         unsubFail()
@@ -65,44 +90,48 @@ export function useAuth() {
         reject(new Error('Auth code request failed'))
       })
 
-      // ✅ Send the auth code request to the Mini Program
+      // ✅ H5 → Mini Program: triggers _handleGetAuthCode() in index.js
       sendToMiniProgram('GET_AUTH_CODE')
     })
   }
 
-  // ── Exchange auth code for user profile (backend call) ────
-  async function exchangeAuthCodeForUser(authCode) {
-    // This hits YOUR backend, which then calls VodaPay's token API.
-    // Backend endpoint should:
-    //   1. POST to VodaPay /v2/authorizations/applyToken with authCode
-    //   2. Use returned accessToken to call VodaPay user API
-    //   3. Return the user profile to this H5 app
-    const response = await axios.post(`${API_BASE}/auth/vodapay`, { authCode })
-    return response.data.user
-  }
-
-  // ── Get open user info (non-sensitive, no OAuth needed) ───
+  // ── Get open user info via bridge ─────────────────────────────
   function getOpenUserInfo() {
     return new Promise((resolve, reject) => {
       const unsubSuccess = onMessage('USER_INFO_SUCCESS', (data) => {
         unsubSuccess()
         unsubFail()
         authStore.setUserInfo(data.userInfo)
+
+        window.alert(
+          '📩 Mini Program → H5\n\n' +
+          'Received: USER_INFO_SUCCESS\n\n' +
+          `Nickname: ${data.userInfo?.nickName}\n` +
+          'Profile display will now update.'
+        )
+
         resolve(data.userInfo)
       })
-      const unsubFail = onMessage('USER_INFO_FAIL', (data) => {
+      const unsubFail = onMessage('USER_INFO_FAIL', () => {
         unsubSuccess()
         unsubFail()
         reject(new Error('Failed to get user info'))
       })
 
-      // ✅ Request non-sensitive profile (avatar, nickname) from Mini Program
+      window.alert(
+        '📨 H5 → Mini Program\n\n' +
+        'Sending: GET_USER_INFO\n\n' +
+        'Requesting avatar and nickname from the mock VodaPay profile.'
+      )
+
+      // ✅ H5 → Mini Program: triggers _handleGetUserInfo() in index.js
       sendToMiniProgram('GET_USER_INFO')
     })
   }
 
   function logout() {
     authStore.clearUser()
+    window.alert('👋 Logged out.\n\nUser has been cleared from the Pinia store.')
   }
 
   return { login, logout, getOpenUserInfo, loading, error }
