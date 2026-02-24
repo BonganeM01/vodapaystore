@@ -1,8 +1,5 @@
 <!-- src/views/HomeView.vue -->
 <script setup>
-// ============================================================
-// HomeView.vue — Product listing page
-// ============================================================
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
@@ -21,7 +18,7 @@ const { sendToMiniProgram } = useVodaPayBridge()
 const searchQuery = ref('')
 const selectedCategory = ref('All')
 
-// Sample product data — replace with API calls in production
+// Mock product data
 const products = ref([
   { id: 1, name: 'Wireless Headphones', price: 299.99, category: 'Electronics', image: '🎧', rating: 4.5, reviews: 128 },
   { id: 2, name: 'Running Shoes', price: 899.00, category: 'Sports', image: '👟', rating: 4.7, reviews: 89 },

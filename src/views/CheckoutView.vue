@@ -1,7 +1,5 @@
-<!-- src/views/CheckoutView.vue -->
 
 <script setup>
-// ============================================================
 // CheckoutView.vue — Checkout page
 //
 // This is where the VodaPay payment is triggered.
@@ -12,7 +10,7 @@
 //   4. Mini Program calls my.tradePay(tradeNO)
 //   5. VodaPay payment sheet appears (native)
 //   6. Result comes back to H5 via bridge
-// ============================================================
+
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
@@ -123,7 +121,7 @@ async function handlePayment() {
         ⚠️ {{ error }}
       </aside>
 
-      <!-- ✅ The Pay button — triggers the full VodaPay payment flow -->
+      <!-- The Pay button — triggers the full VodaPay payment flow -->
       <footer class="checkout-footer">
         <button
           class="pay-btn"

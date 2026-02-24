@@ -1,4 +1,3 @@
-<!-- src/views/CartView.vue -->
 
 <script setup>
 // ============================================================
@@ -79,7 +78,7 @@ function proceedToCheckout() {
           </div>
         </dl>
 
-        <!-- ✅ Checkout triggers auth check, then payment flow -->
+        <!-- Checkout triggers auth check, then payment flow -->
         <button class="btn-primary checkout-btn" @click="proceedToCheckout">
           Checkout with VodaPay
         </button>

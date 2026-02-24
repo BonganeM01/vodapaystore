@@ -1,9 +1,3 @@
-// src/composables/usePayment.js  (MOCK MODE)
-//
-// Replaces the real backend /orders API call with mockCreateOrder().
-// Shows window.alert() at every step so you can trace the payment
-// communication flow between the H5 and Mini Program.
-//
 // Full flow:
 //   1. H5 calls mockCreateOrder()  →  gets a fake tradeNO
 //   2. H5 shows alert confirming the tradeNO
@@ -25,13 +19,13 @@ export function usePayment() {
   const error     = ref(null)
   const lastResult = ref(null)
 
-  // ── Full payment flow ─────────────────────────────────────────
+  // Full payment flow
   async function pay(orderDetails) {
     loading.value = true
     error.value   = null
 
     try {
-      // ── Step 1: Create order via mock API ─────────────────────
+      // Step 1: Create order via mock API
       window.alert(
         '🟡 [MOCK] Step 1: Create Order\n\n' +
         `Total: R ${Number(orderDetails.totalAmount).toFixed(2)}\n` +
@@ -43,26 +37,26 @@ export function usePayment() {
 
       const { tradeNO, orderId } = await mockCreateOrder(orderDetails)
 
-      // ── Step 2: Show the generated tradeNO ────────────────────
+      // Step 2: Show the generated tradeNO
       window.alert(
-        '✅ Order Created (Mock)\n\n' +
+        'Order Created (Mock)\n\n' +
         `Order ID:  ${orderId}\n` +
         `Trade No:  ${tradeNO}\n\n` +
-        '📨 Now sending INITIATE_PAYMENT to Mini Program.\n' +
+        'Now sending INITIATE_PAYMENT to Mini Program.\n' +
         'Watch for the 🟡 [MOCK] payment sheet alert on the native layer.'
       )
 
-      // ── Step 3: Trigger Mini Program payment sheet ─────────────
+      // Step 3: Trigger Mini Program payment sheet
       const result = await triggerPayment(tradeNO, orderDetails.totalAmount)
 
-      // ── Step 4: Handle result ──────────────────────────────────
+      // Step 4: Handle result
       lastResult.value = result
 
       if (result.resultCode === '9000') {
         cartStore.clearCart()
 
         window.alert(
-          '📩 Mini Program → H5\n\n' +
+          'Mini Program -> H5\n\n' +
           'Received: PAYMENT_SUCCESS\n\n' +
           `resultCode: ${result.resultCode} (Success)\n` +
           `tradeNO: ${result.tradeNO}\n\n` +
@@ -70,7 +64,7 @@ export function usePayment() {
         )
       } else if (result.cancelled) {
         window.alert(
-          '📩 Mini Program → H5\n\n' +
+          'Mini Program -> H5\n\n' +
           'Received: PAYMENT_FAIL\n\n' +
           `resultCode: ${result.resultCode} (Cancelled by user)\n\n` +
           'Cart has been preserved. User can try again.'
@@ -88,7 +82,7 @@ export function usePayment() {
     }
   }
 
-  // ── Send tradeNO to Mini Program, wait for result ─────────────
+  // Send tradeNO to Mini Program, wait for result
   function triggerPayment(tradeNO, amount = 0) {
     return new Promise((resolve, reject) => {
       const unsubSuccess = onMessage('PAYMENT_SUCCESS', (data) => {
@@ -108,7 +102,7 @@ export function usePayment() {
         }
       })
 
-      // ✅ H5 → Mini Program: triggers _handleInitiatePayment() in index.js
+      // H5 -> Mini Program: triggers _handleInitiatePayment() in index.js
       // The Mini Program will show a mock payment sheet (my.alert with
       // "Confirm Payment" / "Cancel" buttons) and then send back the result.
       sendToMiniProgram('INITIATE_PAYMENT', { tradeNO, amount })

@@ -1,10 +1,8 @@
-<!-- src/views/ProfileView.vue -->
+
 <script setup>
-// ============================================================
 // ProfileView.vue — User profile
 // Demonstrates fetching open user info via bridge and
 // triggering the full OAuth login flow.
-// ============================================================
 import { onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useAuth } from '@/composables/useAuth'

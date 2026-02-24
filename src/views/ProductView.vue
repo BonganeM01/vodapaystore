@@ -8,7 +8,7 @@ const route = useRoute()
 const router = useRouter()
 const cartStore = useCartStore()
 
-// In production, fetch product from your API using route.params.id
+// Mock products
 const allProducts = [
   { id: 1, name: 'Wireless Headphones', price: 299.99, category: 'Electronics', image: '🎧', rating: 4.5, reviews: 128, description: 'Premium wireless headphones with active noise cancellation, 30-hour battery life, and exceptional sound quality.' },
   { id: 2, name: 'Running Shoes', price: 899.00, category: 'Sports', image: '👟', rating: 4.7, reviews: 89, description: 'Lightweight running shoes with superior cushioning and breathable mesh upper for all-terrain performance.' },

@@ -1,4 +1,3 @@
-// src/stores/cart.js
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useVodaPayBridge } from '@/composables/useVodaPayBridge'
@@ -47,8 +46,8 @@ export const useCartStore = defineStore('cart', () => {
     syncCartCountToMiniProgram()
   }
 
-  // ✅ Notify the Mini Program of the new cart count so it can
-  //    update the tab bar badge via my.setTabBarBadge()
+  // Notify the Mini Program of the new cart count so it can
+  // update the tab bar badge via my.setTabBarBadge()
   function syncCartCountToMiniProgram() {
     sendToMiniProgram('UPDATE_CART_COUNT', { count: totalItems.value })
   }

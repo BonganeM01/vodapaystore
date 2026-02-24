@@ -1,6 +1,5 @@
-<!-- src/views/OrdersView.vue -->
+
 <script setup>
-// OrdersView.vue — Order history page
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
@@ -11,7 +10,6 @@ const authStore = useAuthStore()
 const orders = ref([])
 const loading = ref(false)
 
-// Placeholder orders for demo — replace with real API call
 onMounted(() => {
   orders.value = [
     { id: 'ORD-001', date: '2025-02-20', total: 299.99, status: 'Delivered', items: 1 },

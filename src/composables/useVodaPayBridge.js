@@ -1,41 +1,30 @@
-// src/composables/useVodaPayBridge.js
-//
-// ╔══════════════════════════════════════════════════════════════╗
-// ║  VodaPay Bridge Composable                                   ║
-// ║                                                              ║
-// ║  This is the CENTRAL communication hub of the H5 app.       ║
-// ║  It wraps the `my` global object (injected by bridge.js)    ║
-// ║  and provides a clean, reactive Vue interface.               ║
-// ║                                                              ║
-// ║  Two-way communication protocol:                             ║
-// ║                                                              ║
-// ║  H5 → Mini Program:                                          ║
-// ║    sendToMiniProgram(action, payload)                        ║
-// ║    → calls my.postMessage({ action, payload })               ║
-// ║                                                              ║
-// ║  Mini Program → H5:                                          ║
-// ║    my.onMessage = fn  (set once in initBridge)               ║
-// ║    → emits events that components subscribe to              ║
-// ╚══════════════════════════════════════════════════════════════╝
+                                                            
+//   Two-way communication protocol:                             
+//                                                               
+//   H5 ->  Mini Program:                                          
+//     sendToMiniProgram(action, payload)                        
+//     -> calls my.postMessage({ action, payload })               
+//                                                              
+//   Mini Program -> H5:                                          
+//     my.onMessage = fn  (set once in initBridge)               
+//     -> emits events that components subscribe to           
 
 import { ref, onMounted, onUnmounted } from 'vue'
 
-// ── Event bus for Mini Program → H5 messages ──────────────────
+// Event bus for Mini Program → H5 messages
 // Simple pattern: listeners keyed by message type
 const messageListeners = new Map()
 
-// ── Detect if running inside VodaPay WebView ──────────────────
+// Detect if running inside VodaPay WebView
 // Checks UserAgent for 'miniprogram' string (injected by VodaPay container)
 export function useIsInMiniProgram() {
   const isInMiniProgram = ref(false)
 
-  // my.getEnv is the official way — falls back to UA sniffing
   if (typeof my !== 'undefined' && my.getEnv) {
     my.getEnv((res) => {
       isInMiniProgram.value = !!res.miniprogram
     })
   } else {
-    // Fallback: UserAgent detection
     const ua = window.navigator.userAgent.toLowerCase()
     isInMiniProgram.value = ua.includes('miniprogram')
   }
@@ -43,13 +32,12 @@ export function useIsInMiniProgram() {
   return { isInMiniProgram }
 }
 
-// ── Main bridge composable ─────────────────────────────────────
+// Main bridge composable
 export function useVodaPayBridge() {
   const bridgeReady = ref(false)
   const error = ref(null)
 
-  // ── Initialise the bridge ──────────────────────────────────
-  // Should be called ONCE at the app root (App.vue onMounted).
+  // Initialise the bridge
   // Sets up my.onMessage to receive all messages from the Mini Program.
   function initBridge() {
     if (typeof my === 'undefined') {
@@ -58,9 +46,8 @@ export function useVodaPayBridge() {
       return
     }
 
-    // ✅ Register the global message handler.
+    // Register the global message handler.
     // ALL messages from the Mini Program arrive here.
-    // The Mini Program sends them via: webViewContext.postMessage({ type, data })
     my.onMessage = function (message) {
       console.log('[Bridge] Received from Mini Program:', message)
       const { type, data } = message
@@ -78,22 +65,22 @@ export function useVodaPayBridge() {
 
     bridgeReady.value = true
 
-    // ✅ ALERT: Confirm bridge is live before sending BRIDGE_READY
+    // ALERT: Confirm bridge is live before sending BRIDGE_READY
     window.alert(
       '🔗 Bridge Initialised\n\n' +
       'my.onMessage is now registered.\n\n' +
-      '📨 H5 → Mini Program\n' +
+      'H5 -> Mini Program\n' +
       'Sending: BRIDGE_READY\n\n' +
       'The Mini Program will respond with MINI_PROGRAM_CONTEXT\n' +
       'containing the pre-loaded mock user (Thabo Nkosi).'
     )
 
-    // ✅ Signal to the Mini Program that the H5 is ready.
+    // Signal to the Mini Program that the H5 is ready.
     sendToMiniProgram('BRIDGE_READY', { timestamp: Date.now() })
     console.log('[Bridge] Initialised and signalled ready')
   }
 
-  // ── Send a message TO the Mini Program ────────────────────
+  // Send a message TO the Mini Program
   // Format: { action: 'ACTION_NAME', payload: { ...data } }
   // The Mini Program receives this in its handleH5Message() handler.
   function sendToMiniProgram(action, payload = {}) {
@@ -102,11 +89,11 @@ export function useVodaPayBridge() {
       return
     }
     console.log('[Bridge] Sending to Mini Program:', action, payload)
-    // ✅ This is the core H5 → Mini Program send method
+    // This is the core H5 -> Mini Program send method
     my.postMessage({ action, payload })
   }
 
-  // ── Subscribe to messages FROM the Mini Program ───────────
+  // Subscribe to messages FROM the Mini Program
   // Returns an unsubscribe function.
   // Usage: const unsub = onMessage('AUTH_CODE_SUCCESS', (data) => { ... })
   function onMessage(type, callback) {
@@ -123,7 +110,7 @@ export function useVodaPayBridge() {
     }
   }
 
-  // ── Convenience: one-shot promise-based message ────────────
+  // Convenience: one-shot promise-based message
   // Sends an action and resolves when a specific response type arrives.
   function requestFromMiniProgram(sendAction, receiveType, failType, payload = {}) {
     return new Promise((resolve, reject) => {

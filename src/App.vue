@@ -1,17 +1,13 @@
-<!--src/App.vue-->
+
 <script setup>
-// ============================================================
-// App.vue — Root component  (MOCK MODE)
-//
 // The bridge is initialised here. When the Mini Program sends
 // MINI_PROGRAM_CONTEXT (which includes the pre-loaded mock user),
 // we populate the Pinia auth store so every page sees the user
-// as already logged in — no manual sign-in step required.
+// as already logged in
 //
 // A window.alert() is shown at two key moments:
 //   1. When BRIDGE_READY is sent (H5 → Mini Program)
 //   2. When MINI_PROGRAM_CONTEXT is received (Mini Program → H5)
-// ============================================================
 
 import { onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
@@ -29,21 +25,16 @@ const { initBridge, onMessage } = useVodaPayBridge()
 const cleanups = []
 
 onMounted(() => {
-  // ✅ Initialise bridge — this sets my.onMessage and sends
-  // BRIDGE_READY to the Mini Program (see useVodaPayBridge.js).
-  // The Mini Program receives it in _onBridgeReady() in index.js.
+
   initBridge()
 
-  // ── Listen for the initial context from the Mini Program ──
-  // Fired once after BRIDGE_READY. Contains the mock user that
-  // was pre-loaded in app.js globalData on mini program launch.
   cleanups.push(
     onMessage('MINI_PROGRAM_CONTEXT', (data) => {
       console.log('[App] Received MINI_PROGRAM_CONTEXT:', data)
 
-      // ✅ ALERT: Show what the Mini Program sent us
+      // ALERT: Show what the Mini Program sent us
       window.alert(
-        '📩 Mini Program → H5\n\n' +
+        'Mini Program → H5\n\n' +
         'Received: MINI_PROGRAM_CONTEXT\n\n' +
         `User: ${data.userInfo?.nickName || 'Guest'}\n` +
         `Logged in: ${data.isLoggedIn}\n` +
@@ -53,13 +44,10 @@ onMounted(() => {
       )
 
       // Populate auth store from Mini Program context
-      // This is what makes the user appear pre-logged-in on the H5
       authStore.setFromMiniProgramContext(data)
 
       // Restore cart count from Mini Program
       if (data.cartCount > 0) {
-        // Cart items are managed in the H5 store —
-        // just update the count badge indicator here
         console.log('[App] Restoring cart count:', data.cartCount)
       }
 

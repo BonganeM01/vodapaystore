@@ -1,4 +1,3 @@
-// src/stores/auth.js
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
@@ -24,7 +23,7 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = t
   }
 
-  // ── Called when Mini Program sends MINI_PROGRAM_CONTEXT ──────
+  // Called when Mini Program sends MINI_PROGRAM_CONTEXT
   // The Mini Program already has the mock user loaded in globalData,
   // so the H5 receives it here and bootstraps without any login step.
   function setFromMiniProgramContext(ctx) {
