@@ -39,7 +39,7 @@ export function useAuth() {
  
       // ── Step 3: Exchange auth code with mock API ───────────────
       // In production: POST /auth/vodapay { authCode }
-      const { user, token } = await exchangeAuthCode(authData.authCode)
+      const { user, token } = await mockExchangeAuthCode(authData.authCode)
  
       // ── Step 4: Store user in Pinia ───────────────────────────
       authStore.setUser(user)
@@ -58,7 +58,7 @@ export function useAuth() {
  
     } catch (err) {
       error.value = err.message || 'Login failed'
-      window.alert(`❌ Login Error\n\n${error.value}`)
+      //window.alert(`❌ Login Error\n\n${error.value}`)
       throw err
     } finally {
       loading.value = false
