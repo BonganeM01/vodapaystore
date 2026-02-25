@@ -30,7 +30,7 @@ export function usePayment() {
         '🟡 [MOCK] Step 1: Create Order\n\n' +
         `Total: R ${Number(orderDetails.totalAmount).toFixed(2)}\n` +
         `Items: ${orderDetails.items?.length || 0}\n\n` +
-        'In production, this POSTs to your backend which calls\n' +
+        'In production, this POSTs to the actual backend which calls\n' +
         'VodaPay /v2/payments/pay to get a tradeNO.\n\n' +
         'Calling mock API…'
       )
