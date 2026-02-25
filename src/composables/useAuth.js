@@ -9,20 +9,27 @@ export function useAuth() {
   const loading   = ref(false)
   const error     = ref(null)
  
+  // ── Full login flow ───────────────────────────────────────────
   async function login() {
     loading.value = true
     error.value   = null
  
     try {
+      // ── Step 1: H5 asks Mini Program for an auth code ─────────
+      // The Mini Program will show a mock "consent screen" alert,
+      // then reply with AUTH_CODE_SUCCESS containing the mock code.
+ 
+      
       window.alert(
         '📨 H5 → Mini Program\n\n' +
         'Sending: GET_AUTH_CODE\n\n' +
         'The Mini Program will now simulate the VodaPay consent screen.\n' +
-        'Watch for the native popup on the device.'
+        'Watch for the 🟡 [MOCK] alert on the native layer.'
       )
  
       const authData = await requestAuthCode()
  
+      // ── Step 2: H5 receives auth code, shows it ───────────────
       window.alert(
         '📩 Mini Program → H5\n\n' +
         'Received: AUTH_CODE_SUCCESS\n\n' +
@@ -30,8 +37,11 @@ export function useAuth() {
         'Now exchanging with mock API for user profile…'
       )
  
-      const { user, token } = await mockExchangeAuthCode(authData.authCode)
+      // ── Step 3: Exchange auth code with mock API ───────────────
+      // In production: POST /auth/vodapay { authCode }
+      const { user, token } = await exchangeAuthCode(authData.authCode)
  
+      // ── Step 4: Store user in Pinia ───────────────────────────
       authStore.setUser(user)
       authStore.setUserInfo(user)
       authStore.setToken(token)
@@ -55,6 +65,8 @@ export function useAuth() {
     }
   }
  
+  // ── Request auth code via bridge ──────────────────────────────
+  // Sends GET_AUTH_CODE to Mini Program and waits for the reply.
   function requestAuthCode() {
     return new Promise((resolve, reject) => {
       const unsubSuccess = onMessage('AUTH_CODE_SUCCESS', (data) => {
@@ -62,25 +74,25 @@ export function useAuth() {
         unsubFail()
         resolve(data)
       })
-
       const unsubFail = onMessage('AUTH_CODE_FAIL', (data) => {
         unsubSuccess()
         unsubFail()
         reject(new Error('Auth code request failed'))
       })
  
+      // ✅ H5 → Mini Program: triggers _handleGetAuthCode() in index.js
       sendToMiniProgram('GET_AUTH_CODE')
     })
-
   }
  
+  // ── Get open user info via bridge ─────────────────────────────
   function getOpenUserInfo() {
     return new Promise((resolve, reject) => {
       const unsubSuccess = onMessage('USER_INFO_SUCCESS', (data) => {
         unsubSuccess()
         unsubFail()
         authStore.setUserInfo(data.userInfo)
-
+ 
         window.alert(
           '📩 Mini Program → H5\n\n' +
           'Received: USER_INFO_SUCCESS\n\n' +
@@ -90,7 +102,6 @@ export function useAuth() {
  
         resolve(data.userInfo)
       })
-
       const unsubFail = onMessage('USER_INFO_FAIL', () => {
         unsubSuccess()
         unsubFail()
@@ -103,9 +114,9 @@ export function useAuth() {
         'Requesting avatar and nickname from the mock VodaPay profile.'
       )
  
+      // ✅ H5 → Mini Program: triggers _handleGetUserInfo() in index.js
       sendToMiniProgram('GET_USER_INFO')
     })
-
   }
  
   function logout() {
@@ -113,6 +124,23 @@ export function useAuth() {
     window.alert('👋 Logged out.\n\nUser has been cleared from the Pinia store.')
   }
  
+  async function exchangeAuthCode(authCode) {
+    // Real backend exchange
+    const response = await fetch('/api/auth/exchange', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ authCode }),
+    });
+ 
+    if (!response.ok) {
+      throw new Error('Failed to exchange auth code');
+    }
+ 
+    const { user, token } = await response.json();
+    return { user, token };
+  }
+ 
   return { login, logout, getOpenUserInfo, loading, error }
 }
- 
