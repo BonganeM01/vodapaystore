@@ -1,17 +1,5 @@
 <!--src/App.vue-->
 <script setup>
-// ============================================================
-// App.vue — Root component  (MOCK MODE)
-//
-// The bridge is initialised here. When the Mini Program sends
-// MINI_PROGRAM_CONTEXT (which includes the pre-loaded mock user),
-// we populate the Pinia auth store so every page sees the user
-// as already logged in — no manual sign-in step required.
-//
-// A window.alert() is shown at two key moments:
-//   1. When BRIDGE_READY is sent (H5 → Mini Program)
-//   2. When MINI_PROGRAM_CONTEXT is received (Mini Program → H5)
-// ============================================================
 
 import { onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
@@ -21,18 +9,21 @@ import { useCartStore } from '@/stores/cart'
 import AppHeader from '@/components/AppHeader.vue'
 import AppTabBar from '@/components/AppTabBar.vue'
 
+import { useEnvironment } from '@/utils/environment'
+
 const router    = useRouter()
 const authStore = useAuthStore()
 const cartStore = useCartStore()
 const { initBridge, onMessage } = useVodaPayBridge()
 
+const env = useEnvironment()
+
 const cleanups = []
 
 onMounted(() => {
-  // Initialise bridge — this sets my.onMessage and sends
-  // BRIDGE_READY to the Mini Program (see useVodaPayBridge.js).
-  // The Mini Program receives it in _onBridgeReady() in index.js.
-  initBridge()
+
+  if (env.value?.isVodaPayWebView) {
+    initBridge()
 
   // Listen for the initial context from the Mini Program
   // Fired once after BRIDGE_READY. Contains the mock user that
@@ -78,6 +69,14 @@ onMounted(() => {
       }
     })
   )
+  }else if (env.value?.isStandalone) {
+    const authStore = useAuthStore();
+    authStore.setFromMiniProgramContext({
+      isLoggedIn: true,
+      userId: 'mock-user-001',
+      userInfo: {nickName: "Thabo Nkosi (Standalone)"}
+    });
+  }
 })
 
 onUnmounted(() => {
@@ -94,6 +93,12 @@ onUnmounted(() => {
           <component :is="Component" />
         </Transition>
       </RouterView>
+    </section>
+    <section>
+      <div>
+        <div v-if="env?.isVodaPayWebView" class="badge real">Running in Real VodaPay Mini Program</div>
+        <div v-else-if="env?.isStandalone" class="badge standalone">Standalone Web app</div>
+      </div>
     </section>
     <AppTabBar />
   </main>

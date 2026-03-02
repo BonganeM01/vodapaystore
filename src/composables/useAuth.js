@@ -124,23 +124,49 @@ export function useAuth() {
     window.alert('👋 Logged out.\n\nUser has been cleared from the Pinia store.')
   }
  
+  // Reverse-Engineered "applyAuthCode"
+  // IRL this is a server-to-server POST call to Vodapay
   async function exchangeAuthCode(authCode) {
-    // Real backend exchange
-    const response = await fetch('/api/auth/exchange', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ authCode }),
-    });
- 
-    if (!response.ok) {
-      throw new Error('Failed to exchange auth code');
+
+    await new Promise((resolve) => setTimeout(resolve, 800)) // simulate network delay
+
+    if(!authCode || typeof authCode !== 'string') {
+      throw new Error('Invalid AuthCode received')
     }
- 
-    const { user, token } = await response.json();
-    return { user, token };
+
+    console.log('Exchanging auth code with mock API:', authCode)
+
+    //Actual applyAuthCode response
+    const mockResponse = {
+      access_token: `at_${Date.now()}_vdp_real_token_${Math.random().toString(36).slice(2)}`,
+      expires_in: 7200,
+      refresh_token: `rt_${Date.now()}_vdp_real_refresh_token_${Math.random().toString(36).slice(2)}`,
+      token_type: 'Bearer',
+      openId: `op_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+      unionId: `un_${Date.now()}_global_user`
+    }
+
+    //Simulate fetching user profile with the access token
+    const userProfile = {
+      id: mockResponse.openId,
+      nickName: userInfo.nickName || "Thabo Nkosi",
+      avatar: userInfo.avatar || '',
+      name: "Thabo Nkosi",
+      phone: '+27 82 555 0101',
+      verified: true,
+      openId: mockResponse.openId,
+      unionId: mockResponse.unionId
+    }
+
+    return{
+      user,
+      token:        mockResponse.access_token,
+      accessToken:  mockResponse.access_token,
+      openId:       mockResponse.openId,
+      refreshToken: mockResponse.refresh_token
+    }
   }
  
-  return { login, logout, getOpenUserInfo, loading, error }
+  return { login, logout, getOpenUserInfo, loading, error, exchangeAuthCode }
+
 }
