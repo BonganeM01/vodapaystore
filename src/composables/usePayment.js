@@ -2,7 +2,6 @@
 import { ref } from 'vue'
 import { useVodaPayBridge } from './useVodaPayBridge'
 import { useCartStore } from '@/stores/cart'
-import { mockCreateOrder } from '@/mock/mockAPI'
  
 export function usePayment() {
   const { sendToMiniProgram, onMessage } = useVodaPayBridge()
@@ -11,67 +10,104 @@ export function usePayment() {
   const error     = ref(null)
   const lastResult = ref(null)
  
-  // Full payment flow (mock order + real payment popup) 
+  // Full real payment flow 
   async function pay(orderDetails) {
     loading.value = true
     error.value   = null
  
     try {
-      // Step 1: Mock order creation (temporary)
+      // Step 1: Create real order via backend (gets real tradeNO from VodaPay)
       window.alert(
-        '🟡 [MOCK] Step 1: Create Order\n\n' +
+        '🟡 Creating order...\n\n' +
         `Total: R ${Number(orderDetails.totalAmount).toFixed(2)}\n` +
         `Items: ${orderDetails.items?.length || 0}\n\n` +
-        'Using mock order creation (no backend required)'
+        'Sending to backend...'
       )
  
-      const { tradeNO, orderId } = await mockCreateOrder(orderDetails)
+      const orderResponse = await fetch('/api/orders/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+
+        body: JSON.stringify({
+          items: orderDetails.items,
+          totalAmount: orderDetails.totalAmount,
+          currency: orderDetails.currency || 'ZAR',
+          userId: orderDetails.userId,
+        })
+
+      })
+ 
+      if (!orderResponse.ok) {
+        const errText = await orderResponse.text()
+        throw new Error(`Order creation failed: ${errText || orderResponse.statusText}`)
+      }
+ 
+      const { tradeNO, orderId } = await orderResponse.json()
+      if (!tradeNO) {
+        throw new Error('No tradeNO received from backend')
+      }
  
       window.alert(
-        '✅ Mock order created\n\n' +
+        '✅ Order created successfully\n\n' +
         `Order ID:  ${orderId}\n` +
         `Trade No:  ${tradeNO}\n\n` +
-        'Now sending to Mini Program → watch for real VodaPay payment sheet'
+        'Opening VodaPay payment sheet...'
+
       )
  
-      // Step 2: Trigger REAL payment popup in mini app
+      // Step 2: Trigger real payment in mini app → calls my.tradePay(tradeNO)
       const result = await triggerPayment(tradeNO, orderDetails.totalAmount)
- 
       lastResult.value = result
- 
       if (result.resultCode === '9000') {
-        // Success
+        // Payment success
         cartStore.clearCart()
- 
+
         window.alert(
-          '📩 Mini Program → H5\n\n' +
-          'Received: PAYMENT_SUCCESS\n\n' +
+          '📩 Payment SUCCESS\n\n' +
           `resultCode: ${result.resultCode} (Success)\n` +
           `tradeNO: ${result.tradeNO}\n\n` +
-          'Cart has been cleared. Order is confirmed!'
+          'Cart cleared. Order confirmed!'
         )
+ 
+        // Optional: notify backend of success
+        try {
+          await fetch('/api/orders/confirm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              tradeNO,
+              orderId,
+              status: 'paid',
+              result
+            })
+          })
+        } catch (confirmErr) {
+          console.warn('Failed to confirm payment with backend:', confirmErr)
+        }
+ 
       } else if (result.cancelled || result.resultCode === '6001') {
-        // Cancelled
+        // User cancelled
         window.alert(
-          '📩 Mini Program → H5\n\n' +
-          'Received: PAYMENT_FAIL\n\n' +
-          `resultCode: ${result.resultCode} (Cancelled by user)\n\n` +
-          'Cart has been preserved. User can try again.'
+          '📩 Payment CANCELLED\n\n' +
+          `resultCode: ${result.resultCode || '6001'}\n\n` +
+          'Cart preserved. You can try again.'
         )
       } else {
         // Other failure
         window.alert(
-          '❌ Payment failed\n\n' +
+          '❌ Payment FAILED\n\n' +
           `resultCode: ${result.resultCode}\n` +
-          `Message: ${result.errMsg || 'Unknown error'}`
+          `Message: ${result.errMsg || 'Unknown error'}\n\n` +
+          'Please try again or contact support.'
         )
       }
- 
       return result
- 
     } catch (err) {
       error.value = err.message || 'Payment failed'
       window.alert(`❌ Payment Error\n\n${error.value}`)
+      console.error('Payment flow error:', err)
       throw err
     } finally {
       loading.value = false
@@ -91,18 +127,16 @@ export function usePayment() {
         unsubSuccess()
         unsubFail()
         if (data.resultCode === '6001') {
-          // Cancel is not treated as error
           resolve({ ...data, cancelled: true })
         } else {
-          reject(new Error('Payment failed'))
+          reject(new Error(`Payment failed: ${data.resultCode || 'unknown'}`))
         }
       })
  
-      // This message triggers _mockPayment (or renamed _handleInitiatePayment)
-      // in mini app index.js → calls real my.tradePay(tradeNO)
       sendToMiniProgram('INITIATE_PAYMENT', { tradeNO, amount })
     })
   }
  
   return { pay, loading, error, lastResult }
 }
+ 
