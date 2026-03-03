@@ -5,11 +5,14 @@ import { useAuthStore } from '@/stores/auth'
 import { useAuth } from '@/composables/useAuth'
 import { useVodaPayBridge } from '@/composables/useVodaPayBridge'
 import { useRouter } from 'vue-router'
+import { useEnvironment } from '@/utils/environment'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const { login, logout, getOpenUserInfo, loading } = useAuth()
 const { sendToMiniProgram } = useVodaPayBridge()
+
+const env = useEnvironment()
 
 // Try to get open user info on mount if logged in
 onMounted(async () => {

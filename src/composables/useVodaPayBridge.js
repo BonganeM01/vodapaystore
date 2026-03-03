@@ -1,13 +1,3 @@
-                                                            
-//   Two-way communication protocol:                             
-//                                                               
-//   H5 ->  Mini Program:                                          
-//     sendToMiniProgram(action, payload)                        
-//     -> calls my.postMessage({ action, payload })               
-//                                                              
-//   Mini Program -> H5:                                          
-//     my.onMessage = fn  (set once in initBridge)               
-//     -> emits events that components subscribe to           
 
 import { ref, onMounted, onUnmounted } from 'vue'
 
