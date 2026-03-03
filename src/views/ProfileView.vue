@@ -1,19 +1,15 @@
-
 <script setup>
 import { onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useAuth } from '@/composables/useAuth'
 import { useVodaPayBridge } from '@/composables/useVodaPayBridge'
 import { useRouter } from 'vue-router'
-import { useEnvironment } from '@/utils/environment'
-
+ 
 const router = useRouter()
 const authStore = useAuthStore()
 const { login, logout, getOpenUserInfo, loading } = useAuth()
 const { sendToMiniProgram } = useVodaPayBridge()
-
-const env = useEnvironment()
-
+ 
 // Try to get open user info on mount if logged in
 onMounted(async () => {
   if (authStore.isLoggedIn && !authStore.userInfo) {
@@ -24,7 +20,7 @@ onMounted(async () => {
     }
   }
 })
-
+ 
 async function handleLogin() {
   try {
     await login()
@@ -33,21 +29,21 @@ async function handleLogin() {
     console.error('[Profile] Login error:', e)
   }
 }
-
+ 
 function handleLogout() {
   logout()
 }
-
+ 
 function copyUserId() {
   if (authStore.user?.id) {
     sendToMiniProgram('COPY_TO_CLIPBOARD', { text: authStore.user.id })
   }
 }
 </script>
-
+ 
 <template>
   <article class="profile-view">
-
+ 
     <!-- Logged in state -->
     <template v-if="authStore.isLoggedIn">
       <section class="profile-hero">
@@ -60,7 +56,7 @@ function copyUserId() {
           ID: {{ authStore.user.id }} <span class="copy-hint">tap to copy</span>
         </p>
       </section>
-
+ 
       <!-- Menu items -->
       <nav class="profile-menu card">
         <RouterLink to="/orders" class="menu-item">
@@ -79,10 +75,10 @@ function copyUserId() {
           <span class="menu-arrow">›</span>
         </button>
       </nav>
-
+ 
       <button class="logout-btn" @click="handleLogout">Sign Out</button>
     </template>
-
+ 
     <!-- Logged out state -->
     <template v-else>
       <section class="login-hero">
@@ -96,13 +92,13 @@ function copyUserId() {
         </button>
       </section>
     </template>
-
+ 
   </article>
 </template>
-
+ 
 <style scoped>
 .profile-view { padding: 16px; padding-bottom: 100px; }
-
+ 
 .profile-hero {
   display: flex;
   flex-direction: column;
@@ -113,7 +109,7 @@ function copyUserId() {
   box-shadow: 0 2px 8px rgba(0,0,0,0.07);
   margin-bottom: 16px;
 }
-
+ 
 .avatar {
   width: 80px;
   height: 80px;
@@ -130,7 +126,7 @@ function copyUserId() {
 .display-name { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
 .user-id { font-size: 12px; color: #999; cursor: pointer; }
 .copy-hint { color: #E60000; margin-left: 4px; }
-
+ 
 .profile-menu {
   background: #fff;
   border-radius: 12px;
@@ -138,7 +134,7 @@ function copyUserId() {
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   margin-bottom: 16px;
 }
-
+ 
 .menu-item {
   display: flex;
   align-items: center;
@@ -158,7 +154,7 @@ function copyUserId() {
 .menu-icon { font-size: 22px; }
 .menu-label { flex: 1; font-weight: 500; }
 .menu-arrow { color: #CCC; font-size: 20px; }
-
+ 
 .logout-btn {
   width: 100%;
   background: #fff;
@@ -170,7 +166,7 @@ function copyUserId() {
   font-weight: 600;
   cursor: pointer;
 }
-
+ 
 /* Logged out */
 .login-hero {
   display: flex;
