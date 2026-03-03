@@ -45,8 +45,8 @@ export function useAuth() {
         '✅ Login Complete (Mock)\n\n' +
         `Welcome, ${user.nickName}!\n` +
         `User ID: ${user.id}\n` +
-        // `Access Token: ${token.slice(0, 15)}...\n\n` +
-        // `OpenID: ${user.openId}\n` +
+        `Access Token: ${token.slice(0, 15)}...\n\n` +
+        `OpenID: ${user.openId}\n` +
         `Token: ${token}\n\n` +
         'User is now stored in the Pinia auth store.'
       )
