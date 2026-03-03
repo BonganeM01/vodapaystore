@@ -16,10 +16,6 @@ export function useAuth() {
  
     try {
       // ── Step 1: H5 asks Mini Program for an auth code ─────────
-      // The Mini Program will show a mock "consent screen" alert,
-      // then reply with AUTH_CODE_SUCCESS containing the mock code.
- 
-      
       window.alert(
         '📨 H5 → Mini Program\n\n' +
         'Sending: GET_AUTH_CODE\n\n' +
@@ -38,7 +34,6 @@ export function useAuth() {
       )
  
       // ── Step 3: Exchange auth code with mock API ───────────────
-      // In production: POST /auth/vodapay { authCode }
       const { user, token } = await mockExchangeAuthCode(authData.authCode)
  
       // ── Step 4: Store user in Pinia ───────────────────────────
@@ -50,6 +45,8 @@ export function useAuth() {
         '✅ Login Complete (Mock)\n\n' +
         `Welcome, ${user.nickName}!\n` +
         `User ID: ${user.id}\n` +
+        // `Access Token: ${token.slice(0, 15)}...\n\n` +
+        // `OpenID: ${user.openId}\n` +
         `Token: ${token}\n\n` +
         'User is now stored in the Pinia auth store.'
       )
@@ -66,7 +63,6 @@ export function useAuth() {
   }
  
   // ── Request auth code via bridge ──────────────────────────────
-  // Sends GET_AUTH_CODE to Mini Program and waits for the reply.
   function requestAuthCode() {
     return new Promise((resolve, reject) => {
       const unsubSuccess = onMessage('AUTH_CODE_SUCCESS', (data) => {
@@ -128,7 +124,11 @@ export function useAuth() {
   // IRL this is a server-to-server POST call to Vodapay
   async function exchangeAuthCode(authCode) {
 
+    console.log('[exchangeAuthCode] STARTED with authCode:', authCode)
+
     await new Promise((resolve) => setTimeout(resolve, 800)) // simulate network delay
+
+    console.log('[exchangeAuthCode] Simulated newtwork delay complete.')
 
     if(!authCode || typeof authCode !== 'string') {
       throw new Error('Invalid AuthCode received')
@@ -146,6 +146,14 @@ export function useAuth() {
       unionId: `un_${Date.now()}_global_user`
     }
 
+    console.log('[exchangeAuthCode] Geneated mock tokens:', {
+      access_token_prefix: mockResponse.access_token.slice(0, 15) + '...',
+      refresh_token_prefix: mockResponse.refresh_token.slice(0, 15) + '...',
+      openId: mockResponse.openId,
+      unionId: mockResponse.unionId
+
+    })
+
     //Simulate fetching user profile with the access token
     const userProfile = {
       id: mockResponse.openId,
@@ -158,8 +166,10 @@ export function useAuth() {
       unionId: mockResponse.unionId
     }
 
+    console.log('[exchangeAuthCode] Final user object:', userProfile)
+
     return{
-      user,
+      user: userProfile,
       token:        mockResponse.access_token,
       accessToken:  mockResponse.access_token,
       openId:       mockResponse.openId,
