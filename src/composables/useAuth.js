@@ -146,13 +146,13 @@ export function useAuth() {
       unionId: `un_${Date.now()}_global_user`
     }
 
-    console.log('[exchangeAuthCode] Geneated mock tokens:', {
-      access_token_prefix: mockResponse.access_token.slice(0, 15) + '...',
-      refresh_token_prefix: mockResponse.refresh_token.slice(0, 15) + '...',
-      openId: mockResponse.openId,
-      unionId: mockResponse.unionId
-
-    })
+    window.alert(
+      '[exchangeAuthCode] Generated mock tokens:' +
+      '\nAccess Token: ' + mockResponse.access_token.slice(0, 15) + '...' +
+      '\nRefresh Token: ' + mockResponse.refresh_token.slice(0, 15) + '...' +
+      '\nOpenID: ' + mockResponse.openId +
+      '\nUnionID: ' + mockResponse.unionId
+    )
 
     //Simulate fetching user profile with the access token
     const userProfile = {
