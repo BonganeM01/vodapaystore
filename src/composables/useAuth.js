@@ -34,7 +34,7 @@ export function useAuth() {
       )
  
       // ── Step 3: Exchange auth code with mock API ───────────────
-      const { user, token } = await mockExchangeAuthCode(authData.authCode)
+      const { user, token } = await exchangeAuthCode(authData.authCode)
  
       // ── Step 4: Store user in Pinia ───────────────────────────
       authStore.setUser(user)
