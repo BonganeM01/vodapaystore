@@ -123,17 +123,14 @@ export function useAuth() {
   // Reverse-Engineered "applyAuthCode"
   // IRL this is a server-to-server POST call to Vodapay
   async function exchangeAuthCode(authCode) {
-
     console.log('[exchangeAuthCode] STARTED with authCode:', authCode)
 
     await new Promise((resolve) => setTimeout(resolve, 800)) // simulate network delay
-
     console.log('[exchangeAuthCode] Simulated newtwork delay complete.')
 
     if(!authCode || typeof authCode !== 'string') {
       throw new Error('Invalid AuthCode received')
     }
-
     console.log('Exchanging auth code with mock API:', authCode)
 
     //Actual applyAuthCode response
@@ -148,8 +145,8 @@ export function useAuth() {
 
     window.alert(
       '[exchangeAuthCode] Generated mock tokens:' +
-      '\nAccess Token: ' + mockResponse.access_token.slice(0, 15) + '...' +
-      '\nRefresh Token: ' + mockResponse.refresh_token.slice(0, 15) + '...' +
+      '\nAccess Token: ' + mockResponse.access_token.slice(0, 20) + '...' +
+      '\nRefresh Token: ' + mockResponse.refresh_token.slice(0, 20) + '...' +
       '\nOpenID: ' + mockResponse.openId +
       '\nUnionID: ' + mockResponse.unionId
     )
@@ -165,7 +162,6 @@ export function useAuth() {
       openId: mockResponse.openId,
       unionId: mockResponse.unionId
     }
-
     console.log('[exchangeAuthCode] Final user object:', userProfile)
 
     return{
