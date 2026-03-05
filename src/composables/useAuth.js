@@ -34,20 +34,20 @@ export function useAuth() {
       )
  
       // ── Step 3: Exchange auth code with mock API ───────────────
-      const { user, token } = await exchangeAuthCode(authData.authCode)
+      const exchangeResult = await exchangeAuthCode(authData.authCode)
  
       // ── Step 4: Store user in Pinia ───────────────────────────
-      authStore.setUser(user)
-      authStore.setUserInfo(user)
-      authStore.setToken(token)
+      authStore.setUser(exchangeResult.user)
+      authStore.setUserInfo(exchangeResult.user)
+      authStore.setToken(exchangeResult.token)
  
       window.alert(
         '✅ Login Complete (Mock)\n\n' +
-        `Welcome, ${user.nickName}!\n` +
-        `User ID: ${user.id}\n` +
-        `Access Token: ${token.slice(0, 15)}...\n\n` +
-        `OpenID: ${user.openId}\n` +
-        `Token: ${token}\n\n` +
+        `Welcome, ${exchangeResult.user.nickName}!\n` +
+        `User ID: ${exchangeResult.user.id}\n` +
+        `Access Token: ${exchangeResult.token.slice(0, 15)}...\n\n` +
+        `OpenID: ${exchangeResult.user.openId}\n` +
+        `Token: ${exchangeResult.token}\n\n` +
         'User is now stored in the Pinia auth store.'
       )
  
