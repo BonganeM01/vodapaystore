@@ -15,51 +15,63 @@ const { initBridge, onMessage } = useVodaPayBridge()
 const cleanups = []
  
 onMounted(() => {
-
   initBridge()
  
-  // ── Listen for the initial context from the Mini Program ──
+  //Listen for MINI_PROGRAM_CONTEXT
   cleanups.push(
     onMessage('MINI_PROGRAM_CONTEXT', (data) => {
-      console.log('[App] Received MINI_PROGRAM_CONTEXT:', data)
+      console.log('[App.vue] Received MINI_PROGRAM_CONTEXT from Mini Program:', data)
  
-      // ✅ ALERT: Show what the Mini Program sent us
-      window.alert(
-        '📩 Mini Program → H5\n\n' +
-        'Received: MINI_PROGRAM_CONTEXT\n\n' +
-        `User: ${data.userInfo?.nickName || 'Guest'}\n` +
-        `Logged in: ${data.isLoggedIn}\n` +
-        `User ID: ${data.userId || 'none'}\n` +
-        `Cart items: ${data.cartCount || 0}\n\n` +
-        'Populating Pinia auth store with this user…'
-      )
- 
+      // Always update auth store with latest context
       authStore.setFromMiniProgramContext(data)
  
-      // Restore cart count from Mini Program
-      if (data.cartCount > 0) {
-        console.log('[App] Restoring cart count:', data.cartCount)
+      // show feedback when authentication just completed
+      if (data.justAuthenticated) {
+        console.log('[App.vue] Authentication just succeeded — user is now logged in')
+        alert(`Login successful!\nWelcome, ${data.userInfo?.nickName || 'User'}`)
       }
  
-      // Handle deep link / query param routing
+      // Handle deep link / view routing
+      if (data.deepLink?.view) {
+        const view = data.deepLink.view
+        if (view === 'cart')        router.push('/cart')
+        else if (view === 'profile') router.push('/profile')
+        else if (view === 'checkout') router.push('/checkout')
+        else if (view === 'orders')  router.push('/orders')
+      }
+ 
+      // If deep link contains SKU → go to product
       if (data.deepLink?.sku) {
         router.push(`/product/${data.deepLink.sku}`)
-      } else if (data.deepLink?.view === 'checkout') {
-        router.push('/checkout')
-      } else if (data.deepLink?.view === 'orders') {
-        router.push('/orders')
       }
  
-      // If mini program requires login but user is not in store
-      if (data.deepLink?.requireLogin && !authStore.isLoggedIn) {
-        router.push({ path: '/', query: { loginRequired: '1' } })
+      // if login was required but now we have user → redirect to intended page
+      if (data.isLoggedIn && router.currentRoute.value.query?.loginRequired) {
+        const redirect = router.currentRoute.value.query.redirect || '/'
+        router.push(redirect)
       }
+    })
+  )
+ 
+  // listen for direct USER_INFO_SUCCESS if mini-app sends it separately
+  cleanups.push(
+    onMessage('USER_INFO_SUCCESS', (data) => {
+      console.log('[App.vue] Received USER_INFO_SUCCESS:', data.userInfo)
+      authStore.setUserInfo(data.userInfo)
+    })
+  )
+ 
+  // handle auth code success (for debugging/logging)
+  cleanups.push(
+    onMessage('AUTH_CODE_SUCCESS', (data) => {
+      console.log('[App.vue] Auth code received:', data.authCode)
+      // You can show a toast here if you want UI feedback
     })
   )
 })
  
 onUnmounted(() => {
-  cleanups.forEach((fn) => fn())
+  cleanups.forEach(fn => fn())
 })
 </script>
  
