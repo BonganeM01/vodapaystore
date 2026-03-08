@@ -29,8 +29,11 @@ export const useAuthStore = defineStore('auth', () => {
   // so the H5 receives it here and bootstraps without any login step.
   function setFromMiniProgramContext(ctx) {
     if (ctx.isLoggedIn && ctx.userId) {
-      user.value     = ctx.userInfo || { id: ctx.userId }
-      userInfo.value = ctx.userInfo || null
+      //user.value     = ctx.userInfo || { id: ctx.userId }
+      user.value = { ...user.value, ...ctx.userInfo, id: ctx.userId }
+      userInfo.value = {...userInfo.value, ...ctx.userInfo }
+    }else{
+      userInfo.value = {...userInfo.value, ...ctx.userInfo }
     }
   }
 
