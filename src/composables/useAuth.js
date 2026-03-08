@@ -1,3 +1,4 @@
+// src/composables/useAuth.js
 import { ref } from 'vue'
 import { useVodaPayBridge } from './useVodaPayBridge'
 import { useAuthStore } from '@/stores/auth'

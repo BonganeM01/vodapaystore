@@ -1,3 +1,4 @@
+<!-- src/views/ProfileView.vue -->
 <script setup>
 import { onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
