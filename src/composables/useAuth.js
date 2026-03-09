@@ -54,7 +54,7 @@ export function useAuth() {
  
     } catch (err) {
       error.value = err.message || 'Login failed'
-      //window.alert(`❌ Login Error\n\n${error.value}`)
+      window.alert(`❌ Login Error\n\n${error.value}`)
       throw err
     } finally {
       loading.value = false
