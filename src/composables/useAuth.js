@@ -243,12 +243,12 @@ export function useAuth() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
+        //'Authorization': `Bearer ${accessToken}`,
         'Client-Id': clientId,
         'Request-Time': requestTime,
         'Signature': signatureHeader
       },
-      body: JSON.stringify({ openId })
+      body: JSON.stringify({ 'Client-Id': clientId, 'accessToken': accessToken })
     })
  
     if (!userResponse.ok) {
