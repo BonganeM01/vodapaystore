@@ -63,22 +63,35 @@ export function useAuth() {
  
   // Request auth code via bridge
   function requestAuthCode() {
-    return new Promise((resolve, reject) => {
-      const unsubSuccess = onMessage('AUTH_CODE_SUCCESS', (data) => {
-        unsubSuccess()
-        unsubFail()
-        resolve(data)
-      })
-      const unsubFail = onMessage('AUTH_CODE_FAIL', (data) => {
-        unsubSuccess()
-        unsubFail()
-        reject(new Error('Auth code request failed'))
-      })
+  return new Promise((resolve, reject) => {
+    console.log("[requestAuthCode] Waiting for AUTH_CODE_SUCCESS ...");
  
-      // ✅ H5 → Mini Program: triggers _handleGetAuthCode() in index.js
-      sendToMiniProgram('GET_AUTH_CODE')
-    })
-  }
+    const timeout = setTimeout(() => {
+      console.error("[requestAuthCode] TIMEOUT after 30s");
+      unsubSuccess?.();
+      unsubFail?.();
+      reject(new Error("Auth code timeout – Mini Program did not respond"));
+    }, 30000);
+ 
+    const unsubSuccess = onMessage('AUTH_CODE_SUCCESS', (data) => {
+      console.log("[requestAuthCode] SUCCESS received:", data);
+      clearTimeout(timeout);
+      unsubSuccess();
+      unsubFail();
+      resolve(data);
+    });
+ 
+    const unsubFail = onMessage('AUTH_CODE_FAIL', (data) => {
+      console.log("[requestAuthCode] FAIL received:", data);
+      clearTimeout(timeout);
+      unsubSuccess();
+      unsubFail();
+      reject(new Error(data?.message || "Auth code request failed"));
+    });
+ 
+    sendToMiniProgram('GET_AUTH_CODE');
+  });
+}
  
   // Get open user info via API
   async function getOpenUserInfo() {
@@ -167,9 +180,9 @@ export function useAuth() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-          'Client-Id': clientId,
-          'Request-Time': requestTime,
-          'Signature': signatureHeader
+        'Client-Id': clientId,
+        'Request-Time': requestTime,
+        'Signature': signatureHeader
       },
       body: JSON.stringify({
         grantType: 'authorization_code',
