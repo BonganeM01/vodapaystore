@@ -1,4 +1,4 @@
-
+// src/composables/usePayment.js
 import { ref } from 'vue'
 import { useVodaPayBridge } from './useVodaPayBridge'
 import { useCartStore } from '@/stores/cart'

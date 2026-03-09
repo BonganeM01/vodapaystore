@@ -1,3 +1,4 @@
+<!--src/components/ProductCard.vue-->
 <script setup>
 const props = defineProps({
   product: { type: Object, required: true },

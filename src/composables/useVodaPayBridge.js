@@ -1,4 +1,4 @@
-
+// src/composables/useVodaPayBridge.js
 import { ref, onMounted, onUnmounted } from 'vue'
 
 // Event bus for Mini Program → H5 messages

@@ -1,3 +1,4 @@
+// src/stores/cart.js
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useVodaPayBridge } from '@/composables/useVodaPayBridge'

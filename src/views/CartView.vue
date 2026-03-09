@@ -1,4 +1,4 @@
-
+<!-- CartView.vue — Shopping cart and checkout trigger -->
 <script setup>
 // ============================================================
 // CartView.vue — Shopping cart and checkout trigger
