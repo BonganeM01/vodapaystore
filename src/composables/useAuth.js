@@ -39,9 +39,9 @@ export function useAuth() {
       window.alert(
         '✅ Login Complete\n\n' +
         `Welcome, ${exchangeResult.user.nickName}!\n` +
-        `User ID: ${exchangeResult.user.id}\n` +
+        // `User ID: ${exchangeResult.user.id}\n` +
         `Access Token: ${exchangeResult.token ? exchangeResult.token.slice(0, 15) + '...' : 'N/A'}\n\n` +
-        `OpenID: ${exchangeResult.user.openId || 'N/A'}\n` +
+        // `OpenID: ${exchangeResult.user.openId || 'N/A'}\n` +
         `Token: ${exchangeResult.token || 'N/A'}\n\n` +
         'User is now stored in the Pinia auth store.'
       )
@@ -92,10 +92,10 @@ export function useAuth() {
   async function getOpenUserInfo() {
     try {
       const token = authStore.token
-      const openId = authStore.user?.openId
+      //const openId = authStore.user?.openId
  
-      if (!token || !openId) {
-        throw new Error('No access token or openId available. Please log in first.')
+      if (!token) {
+        throw new Error('No access token available. Please log in first.')
       }
  
       window.alert(
@@ -112,18 +112,22 @@ export function useAuth() {
       const requestTime = new Date().toISOString().replace('Z', '+02:00')
       const signatureHeader = 'algorithm=RSA256,keyVersion=1,signature=testing_signatur'
  
-      const response = await fetch('https://vodapay-gateway.sandbox.vfs.africa/v2/customers/user/inquiryUserInfo', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Client-Id': clientId,
-          'Request-Time': requestTime,
-          'Signature': signatureHeader
+      const response = await fetch(
+        "https://vodapay-gateway.sandbox.vfs.africa/v2/customers/user/inquiryUserInfo",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Client-Id": clientId,
+            "Request-Time": requestTime,
+            Signature: signatureHeader,
+          },
+          body: JSON.stringify({
+            "Client-Id": clientId,
+            accessToken: accessToken,
+          }),
         },
-        body: JSON.stringify({
-          openId: openId
-        })
-      })
+      );
  
       console.log('[getOpenUserInfo] HTTP status:', response.status)
  
@@ -216,8 +220,8 @@ export function useAuth() {
     // Extract tokens: support both camelCase and snake_case
     const accessToken  = tokenData.accessToken  || tokenData.access_token  || ''
     const refreshToken = tokenData.refreshToken || tokenData.refresh_token || ''
-    const openId       = tokenData.openId       || ''
-    const unionId      = tokenData.unionId      || ''
+    // const openId       = tokenData.openId       || ''
+    // const unionId      = tokenData.unionId      || ''
  
     if (!accessToken) {
       console.error('[exchangeAuthCode] No access token in response. Full body was:', tokenData)
@@ -233,8 +237,8 @@ export function useAuth() {
       '[exchangeAuthCode] Tokens received:\n' +
       '\nAccess Token: ' + safeSlice(accessToken, 20) +
       '\nRefresh Token: ' + safeSlice(refreshToken, 20) +
-      '\nOpenID: ' + (openId || 'N/A') +
-      '\nUnionID: ' + (unionId || 'N/A') +
+      // '\nOpenID: ' + (openId || 'N/A') +
+      // '\nUnionID: ' + (unionId || 'N/A') +
       '\n\nNow fetching user profile...'
     )
  
@@ -260,14 +264,14 @@ export function useAuth() {
     console.log('[exchangeAuthCode] User profile:', userProfile)
  
     const user = {
-      id: openId,
+      //id: openId,
       nickName: userProfile.nickName || 'Unknown',
       avatar: userProfile.avatar || '',
       name: userProfile.nickName || 'Unknown',
       phone: userProfile.phoneNumber || '',
-      verified: true,
-      openId,
-      unionId
+      verified: true
+      // openId,
+      // unionId
     }
  
     console.log('[exchangeAuthCode] Final user object:', user)
@@ -276,7 +280,7 @@ export function useAuth() {
       user,
       token: accessToken,
       accessToken,
-      openId,
+      // openId,
       refreshToken
     }
   }
