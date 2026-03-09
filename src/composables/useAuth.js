@@ -34,7 +34,7 @@ export function useAuth() {
  
       authStore.setUser(exchangeResult.user)
       authStore.setUserInfo(exchangeResult.user)
-      authStore.setToken(exchangeResult.token)
+      authStore.setToken(exchangeResult.accessToken)
  
       window.alert(
         '✅ Login Complete\n\n' +
@@ -91,10 +91,10 @@ export function useAuth() {
  
   async function getOpenUserInfo() {
     try {
-      const token = authStore.token
+      const accessToken = authStore.token
       //const openId = authStore.user?.openId
  
-      if (!token) {
+      if (!accessToken) {
         throw new Error('No access token available. Please log in first.')
       }
  
