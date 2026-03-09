@@ -184,7 +184,8 @@ export function useAuth() {
       },
       body: JSON.stringify({
         grantType: 'AUTHORIZATION_CODE', 
-        code: authCode
+        code: authCode,
+        clientId: clientId
       })
     })
  
