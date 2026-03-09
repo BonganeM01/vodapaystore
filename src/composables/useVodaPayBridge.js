@@ -41,6 +41,7 @@ export function useVodaPayBridge() {
       if (messageListeners.has(type)) {
         messageListeners.get(type).forEach((cb) => cb(data))
       }
+      
       if (messageListeners.has('*')) {
         messageListeners.get('*').forEach((cb) => cb({ type, data }))
       }

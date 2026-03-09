@@ -115,16 +115,16 @@ export function useAuth() {
       const response = await fetch(
         "https://vodapay-gateway.sandbox.vfs.africa/v2/customers/user/inquiryUserInfo",
         {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
-            "Client-Id": clientId,
-            "Request-Time": requestTime,
-            Signature: signatureHeader,
+            'Content-Type': 'application/json',
+            'Client-Id': clientId,
+            'Request-Time': requestTime,
+            'Signature': signatureHeader,
           },
           body: JSON.stringify({
-            "Client-Id": clientId,
-            accessToken: accessToken,
+            'Client-Id': clientId,
+            'accessToken': accessToken
           }),
         },
       );
