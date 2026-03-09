@@ -193,7 +193,7 @@ export function useAuth() {
     let tokenData
     try {
       tokenData = await tokenResponse.json()
-      console.log('[exchangeAuthCode] FULL RESPONSE BODY:', JSON.stringify(tokenData, null, 2))
+      window.alert('[exchangeAuthCode] FULL RESPONSE BODY:\n' + JSON.stringify(tokenData, null, 2))
     } catch (parseErr) {
       const text = await tokenResponse.text()
       console.error('[exchangeAuthCode] Response is NOT JSON:', text)
