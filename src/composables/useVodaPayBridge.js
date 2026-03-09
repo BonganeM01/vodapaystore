@@ -66,8 +66,10 @@ export function useVodaPayBridge() {
     )
 
     // Signal to the Mini Program that the H5 is ready.
-    sendToMiniProgram('BRIDGE_READY', { timestamp: Date.now() })
-    console.log('[Bridge] Initialised and signalled ready')
+    setTimeout(() => {
+      console.log('[Bridge] Sending BRIDGE_READY to Mini Program')
+      sendToMiniProgram('BRIDGE_READY', { timestamp: Date.now() })
+    }, 1500);
   }
 
   // Send a message TO the Mini Program
