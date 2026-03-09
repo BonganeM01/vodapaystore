@@ -189,25 +189,34 @@ export function useAuth() {
         code: authCode
       })
     })
+
+    console.log('[exchangeAuthCode] HTTP status:', tokenResponse.status);
  
     if (!tokenResponse.ok) {
       const errText = await tokenResponse.text()
       throw new Error(`Token exchange failed: ${errText || tokenResponse.statusText}`)
     }
  
-    const tokenData = await tokenResponse.json()
+    const tokenData = await tokenResponse.json();
  
-    const accessToken = tokenData.accessToken
-    const openId = tokenData.openId
-    const unionId = tokenData.unionId
-    const refreshToken = tokenData.refreshToken
+    const accessToken = tokenData?.accessToken || tokenData?.access_token || '';
+    const openId = tokenData?.openId ||'';
+    const unionId = tokenData?.unionId || '';
+    const refreshToken = tokenData?.refreshToken || tokenData?.refresh_token || '';
+
+    if(!accessToken){
+      console.error('[exchangeAuthCode] No access token received from token exchange', tokenData);
+      throw new Error('Token exchange did not return an access token')
+    }
+
+    const safeSlice = (str, len) => (typeof str === 'string' && str.length > len) ? str.slice(0, len) : str || 'N/A';
  
     window.alert(
       '[exchangeAuthCode] Tokens received:\n' +
-      '\nAccess Token: ' + accessToken.slice(0, 20) + '...' +
-      '\nRefresh Token: ' + (refreshToken ? refreshToken.slice(0, 20) + '...' : 'N/A') +
-      '\nOpenID: ' + openId +
-      '\nUnionID: ' + unionId +
+      '\nAccess Token: ' + safeSlice(accessToken, 20) + '...' +
+      '\nRefresh Token: ' + safeSlice(refreshToken, 20) + '...' +
+      '\nOpenID: ' + (openId || 'N/A') +
+      '\nUnionID: ' + (unionId || 'N/A') +
       '\n\nNow fetching user profile...'
     )
  
@@ -216,9 +225,10 @@ export function useAuth() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Client-Id': clientId,
-        'Request-Time': requestTime,
-        'Signature': signatureHeader
+        'Authorization': `Bearer ${accessToken}`,
+        // 'Client-Id': clientId,
+        // 'Request-Time': requestTime,
+        // 'Signature': signatureHeader
       },
       body: JSON.stringify({
         openId: openId
@@ -231,6 +241,7 @@ export function useAuth() {
     }
  
     const userProfile = await userResponse.json()
+    console.log('[exchangeAuthCode] User profile received:', userProfile)
  
     const user = {
       id: openId,
