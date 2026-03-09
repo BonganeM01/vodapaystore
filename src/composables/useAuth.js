@@ -183,9 +183,12 @@ export function useAuth() {
         'Signature': signatureHeader
       },
       body: JSON.stringify({
-        grantType: 'AUTHORIZATION_CODE', 
-        code: authCode,
-        clientId: clientId
+        // grantType: 'AUTHORIZATION_CODE', 
+        // code: authCode,
+        // clientId: clientId
+        "clientId": clientId,
+        "userId": userId,
+        "scopes": "auth_User"
       })
     })
  
