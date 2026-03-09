@@ -188,7 +188,7 @@ export function useAuth() {
         // clientId: clientId
         "clientId": clientId,
         "userId": userId,
-        "scopes": "auth_User"
+        "scopes": "auth_user"
       })
     })
  
