@@ -190,7 +190,7 @@ export function useAuth() {
     return { accessToken, refreshToken }
   }
 
-  // Fetch user info once using accessToken
+  // Fetch user info using accessToken
   async function fetchUserInfo(accessToken) {
 
     try {
@@ -199,7 +199,7 @@ export function useAuth() {
       }
  
       window.alert(
-        '📨 Fetching real user info from VodaPay API...\n\n' +
+        '[fetchUserInfo] 📨 Fetching real user info from VodaPay API...\n\n' +
         'Calling: /v2/customers/user/inquiryUserInfo\n\n' +
         'Requesting avatar, nickname, and phone from the VodaPay profile.'
       )
