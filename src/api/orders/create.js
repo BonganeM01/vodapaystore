@@ -1,42 +1,49 @@
-// api/orders/create.js  (Vercel or any Node.js server)
- 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).end();
- 
-  try {
-    const { totalAmount, currency = 'ZAR', items } = req.body;
+// POST /api/orders/create
+app.post('/api/orders/create', async (req, res) => {
+  const { items, totalAmount, currency = 'ZAR', userId, description } = req.body;
 
-    const vodapayResponse = await fetch('https://api.vodapay.co.za/v2/payments/pay', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.VODAPAY_ACCESS_TOKEN}`, // from VodaPay portal
-        'Content-Type': 'application/json'
-      },
+  const CLIENT_ID = '2020122653946739963336'
+  const requestTime = new Date().toISOString().replace('Z', '+02:00')
+  const signatureHeader = 'algorithm=RSA256,keyVersion=1,signature=testing_signatur'
 
-      body: JSON.stringify({
-        amount: { value: totalAmount.toString(), currency },
-        merchantTradeNo: `TEST-ORDER-${Date.now()}`,
-        description: 'VodaPay Store Test Order',
-
-        notifyUrl: 'https://vodapaystore.vercel.app/api/webhook/vodapay', // must be public HTTPS
-        returnUrl: 'https://vodapaystore.vercel.app/checkout?success=1',
-      })
-
-    });
+  // 1. Validate input, check stock, calculate total, etc.
+  // 2. Create order in your DB → get internal orderId
+  // 3. Call VodaPay Create Trade API (server-to-server)
+  
+  const vodapayRes = await fetch('https://vodapay-gateway.sandbox.vfs.africa/v2/trade/create', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Client-Id': CLIENT_ID,
+      'Request-Time': requestTime,
+      'Signature': signatureHeader
+    },
+    body: JSON.stringify({
+      outTradeNo: `ORDER_${Date.now()}`,
+      totalAmount: { currency, amount: totalAmount.toFixed(2) },
+      subject: description || 'VodaPay Store Purchase',
+      body: 'Payment for items in cart',
+      // timeoutExpress: '30m',
+      // notifyUrl: 'https://your-server.com/api/vodapay/notify'
+    })
+  });
  
-    const data = await vodapayResponse.json();
-    if (!vodapayResponse.ok) {
-      return res.status(400).json({ error: data.message || 'VodaPay error' });
-    }
+  const vodapayData = await vodapayRes.json();
  
-    res.status(200).json({
-      tradeNO: data.tradeNo,
-      orderId: `ORD-${Date.now()}`
-    });
- 
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  if (vodapayData.tradeNO) {
+    // Save tradeNO + orderId mapping in your DB
+    res.json({ tradeNO: vodapayData.tradeNO, orderId: 'your_internal_order_id' });
+  } else {
+    res.status(500).json({ error: vodapayData.message || 'Failed to create trade' });
   }
-
-}
+});
+ 
+// POST /api/orders/confirm (optional – for success confirmation)
+app.post('/api/orders/confirm', async (req, res) => {
+  const { tradeNO, orderId, status, resultCode, paymentResult } = req.body;
+  // Update order status in DB
+  // Optionally query VodaPay for final status
+  res.json({ success: true });
+});
+ 
  

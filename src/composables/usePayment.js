@@ -2,21 +2,24 @@
 import { ref } from 'vue'
 import { useVodaPayBridge } from './useVodaPayBridge'
 import { useCartStore } from '@/stores/cart'
+import { useAuthStore } from '@/stores/auth'
  
 export function usePayment() {
   const { sendToMiniProgram, onMessage } = useVodaPayBridge()
   const cartStore = useCartStore()
+  const authStore = useAuthStore()
+ 
   const loading   = ref(false)
   const error     = ref(null)
   const lastResult = ref(null)
  
-  // Full real payment flow 
+  // Real payment flow following VodaPay Once-Off Payment docs
   async function pay(orderDetails) {
     loading.value = true
     error.value   = null
  
     try {
-      // Step 1: Create real order via backend (gets real tradeNO from VodaPay)
+      // Step 1: Create real order on your backend → get tradeNO
       window.alert(
         '🟡 Creating order...\n\n' +
         `Total: R ${Number(orderDetails.totalAmount).toFixed(2)}\n` +
@@ -28,15 +31,15 @@ export function usePayment() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${authStore.token}` // if backend requires auth
         },
-
         body: JSON.stringify({
           items: orderDetails.items,
           totalAmount: orderDetails.totalAmount,
           currency: orderDetails.currency || 'ZAR',
-          userId: orderDetails.userId,
+          userId: authStore.user?.id || authStore.userId,
+          description: 'VodaPay Store Purchase' // optional
         })
-
       })
  
       if (!orderResponse.ok) {
@@ -45,25 +48,26 @@ export function usePayment() {
       }
  
       const { tradeNO, orderId } = await orderResponse.json()
+ 
       if (!tradeNO) {
         throw new Error('No tradeNO received from backend')
       }
  
       window.alert(
         '✅ Order created successfully\n\n' +
-        `Order ID:  ${orderId}\n` +
-        `Trade No:  ${tradeNO}\n\n` +
+        `Order ID: ${orderId}\n` +
+        `Trade No: ${tradeNO}\n\n` +
         'Opening VodaPay payment sheet...'
-
       )
  
-      // Step 2: Trigger real payment in mini app → calls my.tradePay(tradeNO)
+      // Step 2: Trigger real payment in Mini Program
       const result = await triggerPayment(tradeNO, orderDetails.totalAmount)
       lastResult.value = result
+ 
       if (result.resultCode === '9000') {
-        // Payment success
+        // Success
         cartStore.clearCart()
-
+ 
         window.alert(
           '📩 Payment SUCCESS\n\n' +
           `resultCode: ${result.resultCode} (Success)\n` +
@@ -71,7 +75,7 @@ export function usePayment() {
           'Cart cleared. Order confirmed!'
         )
  
-        // Optional: notify backend of success
+        // Step 3: Notify backend of success (recommended)
         try {
           await fetch('/api/orders/confirm', {
             method: 'POST',
@@ -80,22 +84,24 @@ export function usePayment() {
               tradeNO,
               orderId,
               status: 'paid',
-              result
+              resultCode: result.resultCode,
+              paymentResult: result
             })
           })
         } catch (confirmErr) {
           console.warn('Failed to confirm payment with backend:', confirmErr)
         }
- 
-      } else if (result.cancelled || result.resultCode === '6001') {
-        // User cancelled
+      } 
+      else if (result.resultCode === '6001' || result.cancelled) {
+        // Cancelled by user
         window.alert(
           '📩 Payment CANCELLED\n\n' +
           `resultCode: ${result.resultCode || '6001'}\n\n` +
           'Cart preserved. You can try again.'
         )
-      } else {
-        // Other failure
+      } 
+      else {
+        // Failure
         window.alert(
           '❌ Payment FAILED\n\n' +
           `resultCode: ${result.resultCode}\n` +
@@ -103,7 +109,9 @@ export function usePayment() {
           'Please try again or contact support.'
         )
       }
+ 
       return result
+ 
     } catch (err) {
       error.value = err.message || 'Payment failed'
       window.alert(`❌ Payment Error\n\n${error.value}`)
@@ -114,7 +122,7 @@ export function usePayment() {
     }
   }
  
-  // ── Send tradeNO to Mini Program → triggers real my.tradePay ──
+  // Send tradeNO to Mini Program → triggers my.tradePay
   function triggerPayment(tradeNO, amount = 0) {
     return new Promise((resolve, reject) => {
       const unsubSuccess = onMessage('PAYMENT_SUCCESS', (data) => {
