@@ -2,18 +2,20 @@
 import { ref } from 'vue'
 import { useVodaPayBridge } from './useVodaPayBridge'
 import { useAuthStore } from '@/stores/auth'
- 
+
 export function useAuth() {
   const { sendToMiniProgram, onMessage } = useVodaPayBridge()
   const authStore = useAuthStore()
   const loading   = ref(false)
   const error     = ref(null)
- 
+
+  // Main login flow 
   async function login() {
     loading.value = true
     error.value   = null
  
     try {
+      // Step 1: Request auth code from Mini Program
       window.alert(
         '📨 H5 → Mini Program\n\n' +
         'Sending: GET_AUTH_CODE\n\n' +
@@ -27,27 +29,51 @@ export function useAuth() {
         '📩 Mini Program → H5\n\n' +
         'Received: AUTH_CODE_SUCCESS\n\n' +
         `Auth Code: ${authData.authCode}\n\n` +
-        'Now exchanging with VodaPay API for user profile…'
+        'Now exchanging with VodaPay API for access token…'
       )
  
-      const exchangeResult = await exchangeAuthCode(authData.authCode)
+      // Step 2: Exchange auth code for access token
+      const tokenResult = await exchangeAuthCode(authData.authCode)
  
-      authStore.setUser(exchangeResult.user)
-      authStore.setUserInfo(exchangeResult.user)
-      authStore.setToken(exchangeResult.accessToken)
+      window.alert(
+        '🔑 Access token received\n\n' +
+        'Now fetching full user profile from VodaPay…'
+      )
+ 
+      // Step 3: Fetch user info once 
+      const userInfo = await fetchUserInfo(tokenResult.accessToken)
+ 
+      // Step 4: Build rich user object from real data
+      const user = {
+        // id: userInfo.userId || 'Unknown',
+        nickName: userInfo.nickName || 'Unknown',
+        avatar: userInfo.avatar || '',
+        name: userInfo.userName?.fullName || userInfo.nickName || 'Unknown',
+        phone: userInfo.contactInfos?.find(c => c.contactType === 'MOBILE_PHONE')?.contactNo || '',
+        verified: userInfo.kycLevel === '03' || false,
+        // openId,
+        // unionId,
+        birthDate: userInfo.birthDate || null,
+        nationality: userInfo.nationality || null,
+        userId: userInfo.userId || null
+      }
+ 
+      // Step 5: Store everything in Pinia
+      authStore.setUser(user)
+      authStore.setUserInfo(userInfo)       
+      authStore.setToken(tokenResult.accessToken)
  
       window.alert(
         '✅ Login Complete\n\n' +
-        `Welcome, ${exchangeResult.user.nickName}!\n` +
-        // `User ID: ${exchangeResult.user.id}\n` +
-        `Access Token: ${exchangeResult.token ? exchangeResult.token.slice(0, 15) + '...' : 'N/A'}\n\n` +
-        // `OpenID: ${exchangeResult.user.openId || 'N/A'}\n` +
-        `Token: ${exchangeResult.token || 'N/A'}\n\n` +
+        `Welcome, ${user.nickName}!\n` +
+        `User ID: ${user.id}\n` +
+        `Access Token: ${tokenResult.accessToken ? tokenResult.accessToken.slice(0, 15) + '...' : 'N/A'}\n\n` +
+        // `OpenID: ${user.openId || 'N/A'}\n` +
+        `Token: ${tokenResult.accessToken || 'N/A'}\n\n` +
         'User is now stored in the Pinia auth store.'
       )
- 
-      return exchangeResult.user
- 
+
+      return user
     } catch (err) {
       error.value = err.message || 'Login failed'
       window.alert(`❌ Login Error\n\n${error.value}`)
@@ -56,12 +82,14 @@ export function useAuth() {
     } finally {
       loading.value = false
     }
+
   }
  
+  // Get auth code from Mini Program bridge
   function requestAuthCode() {
+
     return new Promise((resolve, reject) => {
       console.log("[requestAuthCode] Waiting for AUTH_CODE_SUCCESS ...")
- 
       const timeout = setTimeout(() => {
         console.error("[requestAuthCode] TIMEOUT after 30s")
         unsubSuccess?.()
@@ -89,78 +117,7 @@ export function useAuth() {
     })
   }
  
-  async function getOpenUserInfo() {
-    try {
-      const accessToken = authStore.token
-      //const openId = authStore.user?.openId
- 
-      if (!accessToken) {
-        throw new Error('No access token available. Please log in first.')
-      }
- 
-      window.alert(
-        '📨 Fetching real user info from VodaPay API...\n\n' +
-        'Calling: /v2/customers/user/inquiryUserInfo\n\n' +
-        'Requesting user info from the VodaPay profile.'
-      )
- 
-      const CLIENT_ID = '2020122653946739963336'
-      const USER_ID = '216610000000446291765'
- 
-      const clientId = CLIENT_ID
-      const userId = USER_ID
-      const requestTime = new Date().toISOString().replace('Z', '+02:00')
-      const signatureHeader = 'algorithm=RSA256,keyVersion=1,signature=testing_signatur'
- 
-      const response = await fetch(
-        "https://vodapay-gateway.sandbox.vfs.africa/v2/customers/user/inquiryUserInfo",
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Client-Id': clientId,
-            'Request-Time': requestTime,
-            'Signature': signatureHeader,
-          },
-          body: JSON.stringify({
-            'Client-Id': clientId,
-            'accessToken': accessToken
-          }),
-        },
-      )
- 
-      console.log('[getOpenUserInfo] HTTP status:', response.status)
- 
-      if (!response.ok) {
-        const errText = await response.text()
-        throw new Error(`Failed to get user info: ${response.status} - ${errText}`)
-      }
- 
-      const userInfo = await response.json()
-      console.log('[getOpenUserInfo] Response:', userInfo)
- 
-      authStore.setUserInfo(userInfo)
- 
-      window.alert(
-        '📩 Received user info from API\n\n' +
-        `Nickname: ${userInfo.name || 'N/A'}\n` +
-        'Profile display will now update.'
-      )
- 
-      return userInfo
-    } catch (err) {
-      error.value = err.message || 'Failed to get user info'
-      window.alert(`❌ User Info Error\n\n${error.value}`)
-      console.error('[getOpenUserInfo] Error:', err)
-      throw err
-    }
-  }
- 
-  function logout() {
-    authStore.clearUser()
-    window.alert('👋 Logged out.\n\nUser has been cleared from the Pinia store.')
-  }
- 
+  // Exchange auth code → access token only
   async function exchangeAuthCode(authCode) {
     console.log('[exchangeAuthCode] STARTED with authCode:', authCode)
  
@@ -169,28 +126,25 @@ export function useAuth() {
     }
  
     const CLIENT_ID = '2020122653946739963336'
-    const USER_ID = '216610000000446291765'
- 
-    const clientId = CLIENT_ID
-    const userId = USER_ID
     const requestTime = new Date().toISOString().replace('Z', '+02:00')
     const signatureHeader = 'algorithm=RSA256,keyVersion=1,signature=testing_signatur'
  
-    console.log('[exchangeAuthCode] Using Client-Id:', clientId)
+    console.log('[exchangeAuthCode] Using Client-Id:', CLIENT_ID)
  
     const tokenResponse = await fetch('https://vodapay-gateway.sandbox.vfs.africa/v2/authorizations/applyToken', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Client-Id': clientId,
+        'Client-Id': CLIENT_ID,
         'Request-Time': requestTime,
         'Signature': signatureHeader
       },
       body: JSON.stringify({
-        'grantType': 'AUTHORIZATION_CODE',
-        'authCode': authCode
-        //'clientId': clientId
+        grantType: 'AUTHORIZATION_CODE',
+        authCode: authCode
+        // 'clientId': CLIENT_ID
       })
+
     })
  
     console.log('[exchangeAuthCode] HTTP status:', tokenResponse.status)
@@ -205,7 +159,6 @@ export function useAuth() {
       throw new Error(`Token exchange response not valid JSON: ${text.slice(0, 200)}...`)
     }
  
-    // Handle both success and error responses
     if (tokenData.error || tokenData.error_description) {
       const errMsg = tokenData.error_description || tokenData.error || 'Unknown error from VodaPay'
       console.error('[exchangeAuthCode] API returned error even on 200:', errMsg, tokenData)
@@ -217,11 +170,8 @@ export function useAuth() {
       throw new Error(`Token exchange HTTP error ${tokenResponse.status}: ${errMsg}`)
     }
  
-    // Extract tokens: support both camelCase and snake_case
     const accessToken  = tokenData.accessToken  || tokenData.access_token  || ''
     const refreshToken = tokenData.refreshToken || tokenData.refresh_token || ''
-    // const openId       = tokenData.openId       || ''
-    // const unionId      = tokenData.unionId      || ''
  
     if (!accessToken) {
       console.error('[exchangeAuthCode] No access token in response. Full body was:', tokenData)
@@ -237,62 +187,76 @@ export function useAuth() {
       '[exchangeAuthCode] Tokens received:\n' +
       '\nAccess Token: ' + safeSlice(accessToken, 20) +
       '\nRefresh Token: ' + safeSlice(refreshToken, 20) +
-      // '\nOpenID: ' + (openId || 'N/A') +
-      // '\nUnionID: ' + (unionId || 'N/A') +
       '\n\nNow fetching user profile...'
     )
  
-    // Fetch user profile using the access token
-    const userResponse = await fetch('https://vodapay-gateway.sandbox.vfs.africa/v2/customers/user/inquiryUserInfo', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        //'Authorization': `Bearer ${accessToken}`,
-        'Client-Id': clientId,
-        'Request-Time': requestTime,
-        'Signature': signatureHeader
-      },
-      body: JSON.stringify({ 'Client-Id': clientId, 'accessToken': accessToken })
-    })
- 
-    if (!userResponse.ok) {
-      const errText = await userResponse.text()
-      throw new Error(`User info fetch failed: ${userResponse.status} - ${errText}`)
-    }
- 
-    const apiResponse = await userResponse.json()
-    console.log('[exchangeAuthCode] Full API response:', apiResponse)
- 
-    // Extract the real userInfo object
-    const userProfile = apiResponse?.userInfo || {}
+    return { accessToken, refreshToken }
+  }
 
-    authStore.setUserInfo(userProfile)
+  // Single source of truth: Fetch user info once after token
+  async function fetchUserInfo(accessToken) {
+    try {
+      if (!accessToken) {
+        throw new Error('No access token available for user info fetch.')
+      }
  
-    const user = {
-      id: userProfile.userId || 'Unknown', 
-      nickName: userProfile.nickName || 'Unknown',
-      avatar: userProfile.avatar || '',
-      name: userProfile.userName?.fullName || userProfile.nickName || 'Unknown',
-      phone: userProfile.contactInfos?.find(c => c.contactType === 'MOBILE_PHONE')?.contactNo || '',
-      verified: userProfile.kycLevel === '03' || false,               // example: level 03 = verified
-      // openId,
-      // unionId,
-      // extra real fields you can use later:
-      birthDate: userProfile.birthDate || null,
-      nationality: userProfile.nationality || null,
-      userId: userProfile.userId || null
-    }
+      window.alert(
+        '📨 Fetching real user info from VodaPay API...\n\n' +
+        'Calling: /v2/customers/user/inquiryUserInfo\n\n' +
+        'Requesting avatar, nickname, and phone from the VodaPay profile.'
+      )
  
-    console.log('[exchangeAuthCode] Final user object:', user)
+      const CLIENT_ID = '2020122653946739963336'
+      const requestTime = new Date().toISOString().replace('Z', '+02:00')
+      const signatureHeader = 'algorithm=RSA256,keyVersion=1,signature=testing_signatur'
+
+      const response = await fetch('https://vodapay-gateway.sandbox.vfs.africa/v2/customers/user/inquiryUserInfo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Client-Id': CLIENT_ID,
+          'Request-Time': requestTime,
+          'Signature': signatureHeader
+        },
+        body: JSON.stringify({
+          accessToken: accessToken
+        })
+
+      })
  
-    return {
-      user,
-      token: accessToken,
-      accessToken,
-      // openId,
-      refreshToken
+      console.log('[fetchUserInfo] HTTP status:', response.status)
+ 
+      if (!response.ok) {
+        const errText = await response.text()
+        throw new Error(`Failed to get user info: ${response.status} - ${errText}`)
+      }
+ 
+      const apiResponse = await response.json()
+
+      console.log('[fetchUserInfo] Full API response:', apiResponse)
+ 
+      const userInfo = apiResponse?.userInfo || {}
+ 
+      window.alert(
+        '📩 Received user info from API\n\n' +
+        `Nickname: ${userInfo.nickName || 'N/A'}\n` +
+        'Profile display will now update.'
+      )
+ 
+      return userInfo
+    } catch (err) {
+      error.value = err.message || 'Failed to get user info'
+      window.alert(`❌ User Info Error\n\n${error.value}`)
+      console.error('[fetchUserInfo] Error:', err)
+      throw err
     }
   }
  
-  return { login, logout, getOpenUserInfo, loading, error, exchangeAuthCode }
+  function logout() {
+    authStore.clearUser()
+    window.alert('👋 Logged out.\n\nUser has been cleared from the Pinia store.')
+  }
+ 
+  return { login, logout, getOpenUserInfo: fetchUserInfo, loading, error, exchangeAuthCode }
 }
+ 
