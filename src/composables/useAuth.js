@@ -265,9 +265,11 @@ export function useAuth() {
  
     // Extract the real userInfo object
     const userProfile = apiResponse?.userInfo || {}
+
+    authStore.setUserInfo(userProfile)
  
     const user = {
-      id: userProfile.userId || 'Unknown',               // uncomment if you later get userId reliably
+      id: userProfile.userId || 'Unknown', 
       nickName: userProfile.nickName || 'Unknown',
       avatar: userProfile.avatar || '',
       name: userProfile.userName?.fullName || userProfile.nickName || 'Unknown',

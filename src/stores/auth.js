@@ -25,8 +25,6 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // Called when Mini Program sends MINI_PROGRAM_CONTEXT
-  // The Mini Program already has the mock user loaded in globalData,
-  // so the H5 receives it here and bootstraps without any login step.
   function setFromMiniProgramContext(ctx) {
     if (ctx.isLoggedIn && ctx.userId) {
       //user.value     = ctx.userInfo || { id: ctx.userId }
