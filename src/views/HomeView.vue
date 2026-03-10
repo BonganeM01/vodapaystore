@@ -68,7 +68,7 @@ function handleShare() {
 <template>
   <article class="home-view">
 
-    <!-- ── Hero banner ─────────────────────────── -->
+    <!-- Hero banner -->
     <section class="hero">
       <header class="hero-content">
         <h2 class="hero-title">Welcome to<br><span class="brand">VodaPay Store</span></h2>
@@ -79,7 +79,7 @@ function handleShare() {
       </button>
     </section>
 
-    <!-- ── Login prompt (shown on auth redirect) ─ -->
+    <!-- Login prompt (shown on auth redirect) -->
     <section v-if="showLoginPrompt" class="login-prompt card">
       <p class="prompt-text">Sign in with VodaPay to continue</p>
       <!-- ✅ Login button triggers the VodaPay OAuth flow via bridge -->
@@ -88,7 +88,7 @@ function handleShare() {
       </button>
     </section>
 
-    <!-- ── Search ──────────────────────────────── -->
+    <!-- Search -->
     <section class="search-section">
       <search class="search-wrap">
         <label for="search" class="sr-only">Search products</label>
@@ -103,7 +103,7 @@ function handleShare() {
       </search>
     </section>
 
-    <!-- ── Category filters ────────────────────── -->
+    <!-- Category filters -->
     <nav class="categories" aria-label="Product categories">
       <button
         v-for="cat in categories"
@@ -116,7 +116,7 @@ function handleShare() {
       </button>
     </nav>
 
-    <!-- ── Products grid ───────────────────────── -->
+    <!--Products grid -->
     <section class="products-section">
       <header class="section-header">
         <h3 class="section-title">{{ selectedCategory === 'All' ? 'All Products' : selectedCategory }}</h3>

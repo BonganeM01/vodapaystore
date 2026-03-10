@@ -11,7 +11,7 @@ const authStore = useAuthStore()
 const { login, logout, getOpenUserInfo, loading } = useAuth()
 const { sendToMiniProgram } = useVodaPayBridge()
  
-// Try to get open user info on mount if logged in
+// get open user info on mount if logged in
 onMounted(async () => {
   if (authStore.isLoggedIn && !authStore.userInfo) {
     try {
@@ -56,6 +56,18 @@ function copyUserId() {
         <p v-if="authStore.user?.id" class="user-id" @click="copyUserId">
           ID: {{ authStore.user.id }} <span class="copy-hint">tap to copy</span>
         </p>
+
+        <div class="contact-info">
+          <p v-if="authStore.user?.phone">
+            <strong>Phone:</strong> {{ authStore.user.phone }}
+          </p>
+          <p v-if="authStore.user?.email">
+            <strong>Email:</strong> {{ authStore.user.email }}
+          </p>
+          <p v-else-if="!authStore.user?.phone && !authStore.user?.email">
+            <em>No contact info available</em>
+          </p>
+        </div>
       </section>
  
       <!-- Menu items -->

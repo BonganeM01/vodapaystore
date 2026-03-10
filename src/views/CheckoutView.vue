@@ -1,15 +1,5 @@
 <!--src/views/CheckoutView.vue-->
 <script setup>
-// CheckoutView.vue — Checkout page
-//
-// This is where the VodaPay payment is triggered.
-// Flow:
-//   1. User taps "Pay with VodaPay"
-//   2. usePayment().pay() → calls your backend to create order
-//   3. Backend returns tradeNO → sent to Mini Program bridge
-//   4. Mini Program calls my.tradePay(tradeNO)
-//   5. VodaPay payment sheet appears (native)
-//   6. Result comes back to H5 via bridge
 
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'

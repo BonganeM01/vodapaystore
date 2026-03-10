@@ -6,8 +6,8 @@ app.post('/api/orders/create', async (req, res) => {
   const requestTime = new Date().toISOString().replace('Z', '+02:00')
   const signatureHeader = 'algorithm=RSA256,keyVersion=1,signature=testing_signatur'
 
-  // 1. Validate input, check stock, calculate total, etc.
-  // 2. Create order in your DB → get internal orderId
+  // 1. Validate input, check stock, calculate total
+  // 2. Create order in DB → get internal orderId
   // 3. Call VodaPay Create Trade API (server-to-server)
   
   const vodapayRes = await fetch('https://vodapay-gateway.sandbox.vfs.africa/v2/trade/create', {
@@ -24,25 +24,25 @@ app.post('/api/orders/create', async (req, res) => {
       subject: description || 'VodaPay Store Purchase',
       body: 'Payment for items in cart',
       // timeoutExpress: '30m',
-      // notifyUrl: 'https://your-server.com/api/vodapay/notify'
+      // notifyUrl: ''
     })
   });
  
   const vodapayData = await vodapayRes.json();
  
   if (vodapayData.tradeNO) {
-    // Save tradeNO + orderId mapping in your DB
+    // Save tradeNO + orderId mapping in DB
     res.json({ tradeNO: vodapayData.tradeNO, orderId: 'your_internal_order_id' });
   } else {
     res.status(500).json({ error: vodapayData.message || 'Failed to create trade' });
   }
 });
  
-// POST /api/orders/confirm (optional – for success confirmation)
+// POST /api/orders/confirm 
 app.post('/api/orders/confirm', async (req, res) => {
   const { tradeNO, orderId, status, resultCode, paymentResult } = req.body;
   // Update order status in DB
-  // Optionally query VodaPay for final status
+  // Query VodaPay for final status
   res.json({ success: true });
 });
  

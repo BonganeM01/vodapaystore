@@ -47,6 +47,7 @@ export function useAuth() {
         avatar: userInfo.avatar || '',
         name: userInfo.userName?.fullName || userInfo.nickName || 'Unknown',
         phone: userInfo.contactInfos?.find(c => c.contactType === 'MOBILE_PHONE')?.contactNo || '',
+        email: userInfo.contactInfos?.find(c => c.contactType === 'EMAIL')?.contactNo || '',
         verified: userInfo.kycLevel === '03' || false,
         // extra real fields
         birthDate: userInfo.birthDate || null,
