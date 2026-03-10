@@ -127,7 +127,7 @@ export function useAuth() {
             'accessToken': accessToken
           }),
         },
-      );
+      )
  
       console.log('[getOpenUserInfo] HTTP status:', response.status)
  
@@ -187,7 +187,7 @@ export function useAuth() {
         'Signature': signatureHeader
       },
       body: JSON.stringify({
-        'grantType': 'AUTHORIZATION_CODE', 
+        'grantType': 'AUTHORIZATION_CODE',
         'authCode': authCode
         //'clientId': clientId
       })
@@ -260,18 +260,25 @@ export function useAuth() {
       throw new Error(`User info fetch failed: ${userResponse.status} - ${errText}`)
     }
  
-    const userProfile = await userResponse.json()
-    console.log('[exchangeAuthCode] User profile:', userProfile)
+    const apiResponse = await userResponse.json()
+    console.log('[exchangeAuthCode] Full API response:', apiResponse)
+ 
+    // Extract the real userInfo object
+    const userProfile = apiResponse?.userInfo || {}
  
     const user = {
-      //id: openId,
+      // id: userProfile.userId || openId || 'Unknown',               // uncomment if you later get userId reliably
       nickName: userProfile.nickName || 'Unknown',
       avatar: userProfile.avatar || '',
-      name: userProfile.nickName || 'Unknown',
-      phone: userProfile.phoneNumber || '',
-      verified: true
+      name: userProfile.userName?.fullName || userProfile.nickName || 'Unknown',
+      phone: userProfile.contactInfos?.find(c => c.contactType === 'MOBILE_PHONE')?.contactNo || '',
+      verified: userProfile.kycLevel === '03' || false,               // example: level 03 = verified
       // openId,
-      // unionId
+      // unionId,
+      // extra real fields you can use later:
+      birthDate: userProfile.birthDate || null,
+      nationality: userProfile.nationality || null,
+      userId: userProfile.userId || null
     }
  
     console.log('[exchangeAuthCode] Final user object:', user)
