@@ -206,4 +206,9 @@ function copyUserId() {
   max-width: 280px;
 }
 .login-btn:disabled { opacity: 0.7; }
+
+.contact-info {   margin-top: 16px;   text-align: center;   font-size: 15px;   color: #333; }
+.contact-info p {   margin: 6px 0; }
+.contact-info strong {   color: #E60000;   margin-right: 6px; }
+.contact-info em {   color: #999;   font-style: italic; }
 </style>
