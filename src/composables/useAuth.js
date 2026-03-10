@@ -101,7 +101,7 @@ export function useAuth() {
       window.alert(
         '📨 Fetching real user info from VodaPay API...\n\n' +
         'Calling: /v2/customers/user/inquiryUserInfo\n\n' +
-        'Requesting avatar, nickname, and phone from the VodaPay profile.'
+        'Requesting user info from the VodaPay profile.'
       )
  
       const CLIENT_ID = '2020122653946739963336'
@@ -143,7 +143,7 @@ export function useAuth() {
  
       window.alert(
         '📩 Received user info from API\n\n' +
-        `Nickname: ${userInfo.nickName || 'N/A'}\n` +
+        `Nickname: ${userInfo.name || 'N/A'}\n` +
         'Profile display will now update.'
       )
  
@@ -267,7 +267,7 @@ export function useAuth() {
     const userProfile = apiResponse?.userInfo || {}
  
     const user = {
-      // id: userProfile.userId || openId || 'Unknown',               // uncomment if you later get userId reliably
+      id: userProfile.userId || 'Unknown',               // uncomment if you later get userId reliably
       nickName: userProfile.nickName || 'Unknown',
       avatar: userProfile.avatar || '',
       name: userProfile.userName?.fullName || userProfile.nickName || 'Unknown',
