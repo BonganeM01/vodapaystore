@@ -233,7 +233,7 @@ export function useAuth() {
  
       const apiResponse = await response.json()
 
-      console.log('[fetchUserInfo] Full API response:', apiResponse)
+      window.alert('[fetchUserInfo] Full API response:', apiResponse)
  
       const userInfo = apiResponse?.userInfo || {}
  
