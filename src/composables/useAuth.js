@@ -205,8 +205,7 @@ export function useAuth() {
       )
  
       const CLIENT_ID = '2020122653946739963336'
-      // const requestTime = new Date().toISOString().replace('Z', '+02:00')
-      const requestTime = "2021-02-22T17:49:26.913+08:00"
+      const requestTime = new Date().toISOString().replace('Z', '+02:00')
       const signatureHeader = 'algorithm=RSA256,keyVersion=1,signature=testing_signatur'
 
       const response = await fetch('https://vodapay-gateway.sandbox.vfs.africa/v2/customers/user/inquiryUserInfo', {
