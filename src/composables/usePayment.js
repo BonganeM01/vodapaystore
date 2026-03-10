@@ -13,7 +13,7 @@ export function usePayment() {
   const error     = ref(null)
   const lastResult = ref(null)
  
-  // Real payment flow following VodaPay Once-Off Payment docs
+  // Real payment flow
   async function pay(orderDetails) {
     loading.value = true
     error.value   = null

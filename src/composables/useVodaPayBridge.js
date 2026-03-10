@@ -41,7 +41,7 @@ export function useVodaPayBridge() {
       if (messageListeners.has(type)) {
         messageListeners.get(type).forEach((cb) => cb(data))
       }
-      
+
       if (messageListeners.has('*')) {
         messageListeners.get('*').forEach((cb) => cb({ type, data }))
       }
@@ -55,8 +55,7 @@ export function useVodaPayBridge() {
       'my.onMessage is now registered.\n\n' +
       'H5 -> Mini Program\n' +
       'Sending: BRIDGE_READY\n\n' +
-      'The Mini Program will respond with MINI_PROGRAM_CONTEXT\n' +
-      'containing the pre-loaded mock user (Thabo Nkosi).'
+      'The Mini Program will respond with MINI_PROGRAM_CONTEXT' 
     )
 
     // Signal to the Mini Program that the H5 is ready.
