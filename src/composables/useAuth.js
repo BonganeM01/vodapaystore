@@ -219,7 +219,8 @@ export function useAuth() {
           'Signature': signatureHeader
         },
         body: JSON.stringify({
-          accessToken: accessToken
+          'authClientId': CLIENT_ID,
+          'accessToken': accessToken
         })
 
       })
