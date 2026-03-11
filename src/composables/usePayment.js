@@ -26,34 +26,14 @@ export function usePayment() {
 
       // Mock backend call
       // generate mock tradeNO and orderId
-      // Generate a realistic tradeNO resembling VodaPay style
-      function generateMockTradeNO() {
-        const now = new Date();
-
-        // YYYYMMDD (8 digits)
-        const yyyy = now.getFullYear().toString();
-        const mm = String(now.getMonth() + 1).padStart(2, '0');
-        const dd = String(now.getDate()).padStart(2, '0');
-
-        const datePrefix = yyyy + mm + dd; // 8 digits
-
-        // Need total = 25 digits
-        // So generate 17 more digits
-        const random17 = Math.floor(Math.random() * 10**17)
-        .toString()
-        .padStart(17, '0');
-
-        return datePrefix + random17; // 8 + 17 = 25 digits
-      }
-
-      const mockTradeNO = generateMockTradeNO();
+      const mockTradeNO = `TEST_TRADE_${Date.now()}_${Math.random().toString(36).slice(2)}`
       const mockOrderId = `ORDER_${Date.now()}`
 
       window.alert(
         '✅ Order created successfully\n\n' +
         `Order ID:  ${mockOrderId}\n` +
         `Trade No:  ${mockTradeNO}\n\n` +
-        'Opening VodaPay cashier...'
+        'Opening "Simulated" VodaPay cashier...'
       )
 
       // Step 2: Trigger real my.tradePay in mini app
@@ -102,6 +82,7 @@ export function usePayment() {
       loading.value = false
 
     }
+
   }
 
   // Send tradeNO to Mini Program → triggers real my.tradePay in my "INITIATE_PAYMENT" handler
@@ -124,7 +105,7 @@ export function usePayment() {
         }
       })
 
-      sendToMiniProgram('INITIATE_PAYMENT', { tradeNO })
+      sendToMiniProgram('INITIATE_PAYMENT', { tradeNO, amount })
     })
   }
 
