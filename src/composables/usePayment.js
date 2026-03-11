@@ -26,7 +26,27 @@ export function usePayment() {
 
       // Mock backend call
       // generate mock tradeNO and orderId
-      const mockTradeNO = `TEST_TRADE_${Date.now()}_${Math.random().toString(36).slice(2)}`
+      // Generate a realistic tradeNO resembling VodaPay style
+      function generateMockTradeNO() {
+        const now = new Date();
+
+        // YYYYMMDD (8 digits)
+        const yyyy = now.getFullYear().toString();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+
+        const datePrefix = yyyy + mm + dd; // 8 digits
+
+        // Need total = 25 digits
+        // So generate 17 more digits
+        const random17 = Math.floor(Math.random() * 10**17)
+        .toString()
+        .padStart(17, '0');
+
+        return datePrefix + random17; // 8 + 17 = 25 digits
+      }
+
+      const mockTradeNO = generateMockTradeNO();
       const mockOrderId = `ORDER_${Date.now()}`
 
       window.alert(
