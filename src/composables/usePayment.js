@@ -102,7 +102,6 @@ export function usePayment() {
       loading.value = false
 
     }
-
   }
 
   // Send tradeNO to Mini Program → triggers real my.tradePay in my "INITIATE_PAYMENT" handler
@@ -125,7 +124,7 @@ export function usePayment() {
         }
       })
 
-      sendToMiniProgram('INITIATE_PAYMENT', { tradeNO, amount })
+      sendToMiniProgram('INITIATE_PAYMENT', { tradeNO })
     })
   }
 
