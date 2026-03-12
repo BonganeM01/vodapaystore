@@ -23,10 +23,19 @@ export function usePayment() {
         `Total: R ${Number(orderDetails.totalAmount).toFixed(2)}\n` +
         `Items: ${orderDetails.items?.length || 0}`
       )
+
+      const CLIENT_ID = '2020122653946739963336';
+      const requestTime = new Date().toISOString().replace('Z', '+02:00');
+      const signatureHeader = 'algorithm=RSA256,keyVersion=1,signature=testing_signatur'; 
  
       const orderResponse = await fetch('/api/orders/create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Client-Id': CLIENT_ID,
+          'Request-Time': requestTime,
+          'Signature': signatureHeader
+        },
         body: JSON.stringify({
           items: orderDetails.items,
           totalAmount: orderDetails.totalAmount,
@@ -67,7 +76,7 @@ export function usePayment() {
         window.alert(`❌ Payment FAILED: ${result.errMsg || result.resultCode}`)
       }
  
-      return result
+      return result;
  
     } catch (err) {
       error.value = err.message
