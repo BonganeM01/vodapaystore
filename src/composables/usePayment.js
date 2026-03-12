@@ -71,7 +71,7 @@ export function usePayment() {
         body: JSON.stringify(body)
       })
 
-      window.alert("[Backend] Order creation response status: " + JSON.stringify(orderResponse))
+      window.alert("[Backend] Order creation response status: " + JSON.stringify(orderResponse.result))
  
       if (!orderResponse.ok) {
         const errText = orderResponse.text()
@@ -81,7 +81,7 @@ export function usePayment() {
       const paymentUrl = orderResponse.redirectActionForm.redirectUrl;
 
       if(!paymentUrl) {
-        throw new Error('No payment URL received from backend', JSON.stringify(orderData))
+        throw new Error('No payment URL received from backend', JSON.stringify(orderResponse))
       }
  
       window.alert(
