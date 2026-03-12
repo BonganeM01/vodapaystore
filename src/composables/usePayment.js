@@ -46,12 +46,12 @@ export function usePayment() {
           currency:  "ZAR",
           value: orderDetails.totalAmount.toString()
         },
-        goodsName: items?.[0]?.product?.name || "VodaPay Store Purchase"
+        goodsName: "VodaPay Store Purchase"
       },
       env: {
         terminalType: "MINI_APP"
       },
-      orderDescription: description || "VodaPay Store Purchase",
+      orderDescription: "VodaPay Store Purchase",
       buyer: {
         referenceBuyerId: authStore.user?.id || "216610000000446291765" 
       }
