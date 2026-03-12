@@ -12,16 +12,13 @@ export default async function handler(req, res) {
   const requestTime = new Date().toISOString().replace('Z', '+02:00');
   const signatureHeader = 'algorithm=RSA256,keyVersion=1,signature=testing_signatur'; // Replace with real signature in production
  
-  const paymentRequestId = `PAY_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-  const paymentExpiryTime = new Date(Date.now() + 30 * 60 * 1000).toISOString(); // 30 minutes
- 
   const body = {
     productcode: "CASHIER_PAYMENT",
     salesCode: "51051000101000000011",
     paymentNotifyUrl: "http://mock.vision.vodacom.aws.corp/mock/api/v1/payments/notifyPayment.htm", // Change to real notify URL later
-    paymentRequestId: paymentRequestId,
-    paymentRedirectUrl: "http://mock.vision.vodacom.aws.corp/mock/api/v1/payments/notifyPayment.htm", // Change to checkout success page
-    paymentExpiryTime: paymentExpiryTime,
+    paymentRequestId: "c0a83b17161398737179310015310",
+    paymentRedirectUrl: "https://vodapaystore.vercel.app/checkout", // Change to checkout success page
+    paymentExpiryTime: "3022-02-22T17:49:31+08:00",
     paymentAmount: {
       currency: currency,
       value: totalAmount.toString()
@@ -31,7 +28,7 @@ export default async function handler(req, res) {
         referenceGoodsId: "goods123",
         goodsUnitAmount: {
           currency: currency,
-          value: "2000" // Adjust per item if needed
+          value: "2000" 
         },
         goodsName: items?.[0]?.product?.name || "VodaPay Store Purchase"
       },
@@ -40,7 +37,7 @@ export default async function handler(req, res) {
       },
       orderDescription: description || "VodaPay Store Purchase",
       buyer: {
-        referenceBuyerId: userId || "anonymous"
+        referenceBuyerId: userId
       }
     },
     extendInfo: "{}"
@@ -60,7 +57,7 @@ export default async function handler(req, res) {
  
     const vodapayData = await vodapayRes.json();
  
-    console.log('[Backend] VodaPay /payments/pay response:', vodapayData);
+    window.alert('[Backend] VodaPay /payments/pay response:\n\n', JSON.stringify(vodapayData));
  
     if (vodapayData.result?.resultStatus === 'A' && vodapayData.redirectActionForm?.redirectUrl) {
       // Store order in memory (for demo)
