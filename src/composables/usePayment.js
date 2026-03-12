@@ -28,36 +28,38 @@ export function usePayment() {
       const CLIENT_ID = '2020122653946739963336';
       const requestTime = new Date().toISOString().replace('Z', '+02:00');
       const signatureHeader = 'algorithm=RSA256,keyVersion=1,signature=testing_signatur'; 
-        const body = {
-    productcode: "CASHIER_PAYMENT",
-    salesCode: "51051000101000000011",
-    paymentNotifyUrl: "http://mock.vision.vodacom.aws.corp/mock/api/v1/payments/notifyPayment.htm", // Change to real notify URL later
-    paymentRequestId: "c0a83b17161398737179310015310",
-    paymentRedirectUrl: "https://vodapaystore.vercel.app/checkout",
-    paymentExpiryTime: "3022-02-22T17:49:31+08:00",
-    paymentAmount: {
-      currency:  "ZAR",
-      value: orderDetails.totalAmount.toString()
-    },
-    order: {
-      goods: {
-        referenceGoodsId: "goods123",
-        goodsUnitAmount: {
+
+      const body = {
+        productcode: "CASHIER_PAYMENT",
+        salesCode: "51051000101000000011",
+        paymentNotifyUrl: "http://mock.vision.vodacom.aws.corp/mock/api/v1/payments/notifyPayment.htm", // Change to real notify URL later
+        paymentRequestId: "c0a83b17161398737179310015310",
+        paymentRedirectUrl: "https://vodapaystore.vercel.app/checkout",
+        paymentExpiryTime: "3022-02-22T17:49:31+08:00",
+        paymentAmount: {
           currency:  "ZAR",
           value: orderDetails.totalAmount.toString()
         },
-        goodsName: "VodaPay Store Purchase"
-      },
-      env: {
-        terminalType: "MINI_APP"
-      },
-      orderDescription: "VodaPay Store Purchase",
-      buyer: {
-        referenceBuyerId: authStore.user?.id || "216610000000446291765" 
-      }
-    },
-    extendInfo: "{}"
-  };
+        order: {
+          goods: {
+            referenceGoodsId: "goods123",
+            goodsUnitAmount: {
+              currency:  "ZAR",
+              value: orderDetails.totalAmount.toString()
+            },
+            goodsName: "VodaPay Store Purchase"
+          },
+          env: {
+            terminalType: "MINI_APP"
+          },
+          orderDescription: "VodaPay Store Purchase",
+          buyer: {
+            referenceBuyerId: authStore.user?.id || "216610000000446291765" 
+          }
+        },
+      extendInfo: "{}"
+      };
+
       const orderResponse = await fetch('https://vodapay-gateway.sandbox.vfs.africa/v2/payments/pay', {
         method: 'POST',
         headers: { 
@@ -75,6 +77,8 @@ export function usePayment() {
       }
  
       const orderData = await orderResponse.json()
+
+      const paymentUrl = orderData.redirectActionForm?.redirectUrl
 
       if(!paymentUrl) {
         throw new Error('No payment URL received from backend', JSON.stringify(orderData))
