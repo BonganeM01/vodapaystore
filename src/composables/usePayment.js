@@ -37,14 +37,14 @@ export function usePayment() {
     paymentExpiryTime: "3022-02-22T17:49:31+08:00",
     paymentAmount: {
       currency:  "ZAR",
-      value: totalAmount.toString()
+      value: orderDetails.totalAmount.toString()
     },
     order: {
       goods: {
         referenceGoodsId: "goods123",
         goodsUnitAmount: {
           currency:  "ZAR",
-          value: "2000" 
+          value: orderDetails.totalAmount.toString()
         },
         goodsName: items?.[0]?.product?.name || "VodaPay Store Purchase"
       },
