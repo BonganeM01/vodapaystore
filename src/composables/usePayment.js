@@ -42,6 +42,10 @@ export function usePayment() {
       }
  
       const { paymentUrl, paymentId, orderId } = await orderResponse.json()
+
+      if(!paymentUrl) {
+        throw new Error('No payment URL received from backend')
+      }
  
       window.alert(
         '✅ Order created\n\n' +
