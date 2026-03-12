@@ -28,7 +28,7 @@ export function usePayment() {
       const requestTime = new Date().toISOString().replace('Z', '+02:00');
       const signatureHeader = 'algorithm=RSA256,keyVersion=1,signature=testing_signatur'; 
  
-      const orderResponse = await fetch('/api/orders/create', {
+      const orderResponse = await fetch('https://vodapay-gateway.sandbox.vfs.africa/v2/payments/pay', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

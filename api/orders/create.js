@@ -10,14 +10,14 @@ export default async function handler(req, res) {
  
   const CLIENT_ID = '2020122653946739963336';
   const requestTime = new Date().toISOString().replace('Z', '+02:00');
-  const signatureHeader = 'algorithm=RSA256,keyVersion=1,signature=testing_signatur'; // Replace with real signature in production
+  const signatureHeader = 'algorithm=RSA256,keyVersion=1,signature=testing_signatur';
  
   const body = {
     productcode: "CASHIER_PAYMENT",
     salesCode: "51051000101000000011",
     paymentNotifyUrl: "http://mock.vision.vodacom.aws.corp/mock/api/v1/payments/notifyPayment.htm", // Change to real notify URL later
     paymentRequestId: "c0a83b17161398737179310015310",
-    paymentRedirectUrl: "https://vodapaystore.vercel.app/checkout", // Change to checkout success page
+    paymentRedirectUrl: "https://vodapaystore.vercel.app/checkout",
     paymentExpiryTime: "3022-02-22T17:49:31+08:00",
     paymentAmount: {
       currency: currency,
@@ -84,5 +84,3 @@ export default async function handler(req, res) {
     res.status(500).json({ error: 'Internal server error' });
   }
 }
-//your-domain.com
- 
