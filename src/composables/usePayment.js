@@ -71,16 +71,14 @@ export function usePayment() {
         body: JSON.stringify(body)
       })
 
-      window.alert("[Backend] Order creation response status: " + orderResponse.status)
+      window.alert("[Backend] Order creation response status: " + JSON.stringify(orderResponse))
  
       if (!orderResponse.ok) {
-        const errText = await orderResponse.text()
+        const errText = orderResponse.text()
         throw new Error(`Order creation failed: ${errText}`)
       }
- 
-      const orderData = await orderResponse.json()
 
-      const paymentUrl = orderData.redirectActionForm?.redirectUrl;
+      const paymentUrl = orderResponse.redirectActionForm.redirectUrl;
 
       if(!paymentUrl) {
         throw new Error('No payment URL received from backend', JSON.stringify(orderData))
