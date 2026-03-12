@@ -53,7 +53,7 @@ export function usePayment() {
       },
       orderDescription: description || "VodaPay Store Purchase",
       buyer: {
-        referenceBuyerId: userId
+        referenceBuyerId: authStore.user?.id || "216610000000446291765" 
       }
     },
     extendInfo: "{}"
