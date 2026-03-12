@@ -12,6 +12,7 @@ export function usePayment() {
   const loading   = ref(false)
   const error     = ref(null)
   const lastResult = ref(null)
+
  
   async function pay(orderDetails) {
     loading.value = true
@@ -23,11 +24,40 @@ export function usePayment() {
         `Total: R ${Number(orderDetails.totalAmount).toFixed(2)}\n` +
         `Items: ${orderDetails.items?.length || 0}`
       )
-
+      
       const CLIENT_ID = '2020122653946739963336';
       const requestTime = new Date().toISOString().replace('Z', '+02:00');
       const signatureHeader = 'algorithm=RSA256,keyVersion=1,signature=testing_signatur'; 
- 
+        const body = {
+    productcode: "CASHIER_PAYMENT",
+    salesCode: "51051000101000000011",
+    paymentNotifyUrl: "http://mock.vision.vodacom.aws.corp/mock/api/v1/payments/notifyPayment.htm", // Change to real notify URL later
+    paymentRequestId: "c0a83b17161398737179310015310",
+    paymentRedirectUrl: "https://vodapaystore.vercel.app/checkout",
+    paymentExpiryTime: "3022-02-22T17:49:31+08:00",
+    paymentAmount: {
+      currency: currency,
+      value: totalAmount.toString()
+    },
+    order: {
+      goods: {
+        referenceGoodsId: "goods123",
+        goodsUnitAmount: {
+          currency: currency,
+          value: "2000" 
+        },
+        goodsName: items?.[0]?.product?.name || "VodaPay Store Purchase"
+      },
+      env: {
+        terminalType: "MINI_APP"
+      },
+      orderDescription: description || "VodaPay Store Purchase",
+      buyer: {
+        referenceBuyerId: userId
+      }
+    },
+    extendInfo: "{}"
+  };
       const orderResponse = await fetch('https://vodapay-gateway.sandbox.vfs.africa/v2/payments/pay', {
         method: 'POST',
         headers: { 
@@ -36,13 +66,7 @@ export function usePayment() {
           'Request-Time': requestTime,
           'Signature': signatureHeader
         },
-        body: JSON.stringify({
-          items: orderDetails.items,
-          totalAmount: orderDetails.totalAmount,
-          currency: orderDetails.currency || 'ZAR',
-          userId: authStore.user?.id,
-          description: 'VodaPay Store Purchase'
-        })
+        body: JSON.stringify(body)
       })
  
       if (!orderResponse.ok) {
@@ -50,10 +74,10 @@ export function usePayment() {
         throw new Error(`Order creation failed: ${errText}`)
       }
  
-      const { paymentUrl, paymentId, orderId } = await orderResponse.json()
+      const orderData = await orderResponse.json()
 
       if(!paymentUrl) {
-        throw new Error('No payment URL received from backend')
+        throw new Error('No payment URL received from backend', JSON.stringify(orderData))
       }
  
       window.alert(
