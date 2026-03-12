@@ -36,14 +36,14 @@ export function usePayment() {
     paymentRedirectUrl: "https://vodapaystore.vercel.app/checkout",
     paymentExpiryTime: "3022-02-22T17:49:31+08:00",
     paymentAmount: {
-      currency: currency,
+      currency:  "ZAR",
       value: totalAmount.toString()
     },
     order: {
       goods: {
         referenceGoodsId: "goods123",
         goodsUnitAmount: {
-          currency: currency,
+          currency:  "ZAR",
           value: "2000" 
         },
         goodsName: items?.[0]?.product?.name || "VodaPay Store Purchase"
