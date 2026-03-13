@@ -64,8 +64,7 @@ export function usePayment() {
           buyer: {
             referenceBuyerId: "216610000000446291765" 
           }
-        },
-      extendInfo: "{}"
+        }
       };
 
       const orderResponse = await fetch('https://vodapay-gateway.sandbox.vfs.africa/v2/payments/pay', {
