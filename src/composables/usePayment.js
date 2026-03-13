@@ -40,10 +40,10 @@ export function usePayment() {
       const body = {
         productCode: "CASHIER_PAYMENT",
         salesCode: "51051000101000000011",
-        paymentNotifyUrl: "http://mock.vision.vodacom.aws.corp/mock/api/v1/payments/notifyPayment.htm", // Change to real notify URL later
+        paymentNotifyUrl: "http://mock.vision.vodacom.aws.corp/mock/api/v1/payments/notifyPayment.htm",
         paymentRequestId: "c0a83b17161398737179310015792",
         paymentRedirectUrl: "https://vodapaystore.vercel.app/checkout",
-        paymentExpiryTime: "3022-02-22T17:49:31+08:00",
+        paymentExpiryTime: "3022-02-22T17:49:31+02:00",
         paymentAmount: {
           currency:  "ZAR",
           value: "2000"
@@ -53,7 +53,7 @@ export function usePayment() {
             referenceGoodsId: "goods123",
             goodsUnitAmount: {
               currency:  "ZAR",
-              value: "2000" // Adjust per item if needed
+              value: "2000"
             },
             goodsName: "VodaPay Store Purchase"
           },
