@@ -19,10 +19,18 @@ export function usePayment() {
     error.value   = null
  
     try {
+
+      const totalAmount = cartStore.totalPrice
+      const items = cartStore.items
+
+      if(!totalAmount || items.length === 0){
+        throw new Error('Cart is empty. Please add items before checking out.')
+      }
+
       window.alert(
         '🟡 Creating order on backend...\n\n' +
-        `Total: R ${Number(orderDetails.totalAmount).toFixed(2)}\n` +
-        `Items: ${orderDetails.items?.length || 0}`
+        `Total: R ${Number(totalAmount).toFixed(2)}\n` +
+        `Items: ${items.length}`
       )
       
       const CLIENT_ID = '2020122653946739963336';
@@ -38,14 +46,14 @@ export function usePayment() {
         paymentExpiryTime: "3022-02-22T17:49:31+08:00",
         paymentAmount: {
           currency:  "ZAR",
-          value: orderDetails.totalAmount.toString()
+          value: totalAmount.toString()
         },
         order: {
           goods: {
             referenceGoodsId: "goods123",
             goodsUnitAmount: {
               currency:  "ZAR",
-              value: orderDetails.totalAmount.toString()
+              value: totalAmount.toString() // Adjust per item if needed
             },
             goodsName: "VodaPay Store Purchase"
           },
