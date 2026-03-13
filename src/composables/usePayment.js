@@ -29,7 +29,7 @@ export function usePayment() {
         `🟡 Creating order...\n\nTotal: R ${totalAmount.toFixed(2)}\nItems: ${items.length}`
       );
  
-      const orderResponse = await fetch('/api/payments/create', {
+      const orderResponse = await fetch('/api/orders/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -50,7 +50,7 @@ export function usePayment() {
  
       // Debug: show everything we got back
       window.alert(
-        'Backend /api/payments/create response:\n\n' +
+        'Backend /api/orders/create response:\n\n' +
         JSON.stringify(data, null, 2)
       );
  
