@@ -38,34 +38,34 @@ export function usePayment() {
       const signatureHeader = 'algorithm=RSA256,keyVersion=1,signature=testing_signatur'; 
 
       const body = {
-        productCode: "CASHIER_PAYMENT",
-        salesCode: "51051000101000000011",
-        paymentNotifyUrl: "http://mock.vision.vodacom.aws.corp/mock/api/v1/payments/notifyPayment.htm",
-        paymentRequestId: "c0a83b17161398737179310015875",
-        paymentRedirectUrl: "https://vodapaystore.vercel.app/checkout",
-        paymentExpiryTime: "3022-02-re:49:31+02:00",
-        paymentAmount: {
-          currency:  "ZAR",
-           value: "2000"
+        "productCode": "CASHIER_PAYMENT",
+        "salesCode": "51051000101000000011",
+        "paymentNotifyUrl": "http://mock.vision.vodacom.aws.corp/mock/api/v1/payments/notifyPayment.htm",
+        "paymentRequestId": "c0a83b17161398737179310015875",
+        "paymentRedirectUrl": "https://vodapaystore.vercel.app/checkout",
+        "paymentExpiryTime": "3022-02-28T14:49:31+02:00",
+        "paymentAmount": {
+          "currency":  "ZAR",
+           "value": "2000"
         },
-        order: {
-          goods: {
-            referenceGoodsId: "goods123",
-            goodsUnitAmount: {
-              currency:  "ZAR",
-              value: "2000"
+        "order": {
+          "goods": {
+            "referenceGoodsId": "goods123",
+            "goodsUnitAmount": {
+              "currency":  "ZAR",
+              "value": "2000"
             },
-            goodsName: "VodaPay Store Purchase"
+            "goodsName": "VodaPay Store Purchase"
           },
-          env: {
-            terminalType: "MINI_APP"
+          "env": {
+            "terminalType" : "MINI_APP"
           },
-          orderDescription: "VodaPay Store Purchase",
-          buyer: {
-            referenceBuyerId: "216610000000446291765" 
+          "orderDescription": "VodaPay Store Purchase",
+          "buyer": {
+            "referenceBuyerId": authStore.user?.id || "216610000000446291765"
           }
         },
-      extendInfo: "{}"
+        "extendInfo": "{}"
       };
 
       const orderResponse = await fetch('https://vodapay-gateway.sandbox.vfs.africa/v2/payments/pay', {
