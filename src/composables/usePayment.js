@@ -41,7 +41,7 @@ export function usePayment() {
         productCode: "CASHIER_PAYMENT",
         salesCode: "51051000101000000011",
         paymentNotifyUrl: "http://mock.vision.vodacom.aws.corp/mock/api/v1/payments/notifyPayment.htm",
-        paymentRequestId: "c0a83b17161398737179310015310",
+        paymentRequestId: "c0a83b17161398737179310015875",
         paymentRedirectUrl: "https://vodapaystore.vercel.app/checkout",
         paymentExpiryTime: "3022-02-22T17:49:31+02:00",
         paymentAmount: {
