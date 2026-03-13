@@ -73,8 +73,7 @@ export function usePayment() {
         headers: { 
           'Content-Type': 'application/json',
           'Client-Id': CLIENT_ID,
-          'Request-Time': requestTime,
-          'Signature': signatureHeader
+          'Request-Time': requestTime
         },
         body: JSON.stringify(body)
       })
