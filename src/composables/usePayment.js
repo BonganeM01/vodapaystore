@@ -30,7 +30,7 @@ export function usePayment() {
       const signatureHeader = 'algorithm=RSA256,keyVersion=1,signature=testing_signatur'; 
 
       const body = {
-        productcode: "CASHIER_PAYMENT",
+        productCode: "CASHIER_PAYMENT",
         salesCode: "51051000101000000011",
         paymentNotifyUrl: "http://mock.vision.vodacom.aws.corp/mock/api/v1/payments/notifyPayment.htm", // Change to real notify URL later
         paymentRequestId: "c0a83b17161398737179310015310",
