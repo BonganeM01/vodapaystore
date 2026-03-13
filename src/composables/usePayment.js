@@ -14,7 +14,7 @@ export function usePayment() {
   const lastResult = ref(null)
 
  
-  async function pay(orderDetails) {
+  async function pay() {
     loading.value = true
     error.value   = null
  
@@ -46,14 +46,14 @@ export function usePayment() {
         paymentExpiryTime: "3022-02-22T17:49:31+08:00",
         paymentAmount: {
           currency:  "ZAR",
-          value: totalAmount.toString()
+          value: "2000"
         },
         order: {
           goods: {
             referenceGoodsId: "goods123",
             goodsUnitAmount: {
               currency:  "ZAR",
-              value: totalAmount.toString() // Adjust per item if needed
+              value: "2000" // Adjust per item if needed
             },
             goodsName: "VodaPay Store Purchase"
           },
