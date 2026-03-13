@@ -88,7 +88,7 @@ export function usePayment() {
 
       const apiResponse = await orderResponse.json()
 
-      window.alert("[Backend] Order creation Full response: \n\n" + JSON.stringify(apiResponse))
+      window.alert("[Backend] Order creation Full response: \n\n" + JSON.stringify(apiResponse, null, 2))
 
       const paymentUrl = apiResponse?.redirectActionForm?.redirectUrl;
       const paymentId = apiResponse?.paymentId;
