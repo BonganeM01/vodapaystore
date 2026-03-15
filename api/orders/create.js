@@ -27,14 +27,14 @@ export default async function handler(req, res) {
       paymentExpiryTime: paymentExpiryTime,
       paymentAmount: {
         currency: currency,
-        value: totalAmount.toString()
+        value: "2000" 
       },
       order: {
         goods: {
           referenceGoodsId: items[0]?.product?.id?.toString() || "goods123",
           goodsUnitAmount: {
             currency: currency,
-            value: totalAmount.toString()
+            value:"2000"
           },
           goodsName: items[0]?.product?.name || "VodaPay Store Purchase"
         },
