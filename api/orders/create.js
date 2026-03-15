@@ -1,4 +1,27 @@
 // api/orders/create.js
+
+function uniquePaymentRequestId() {
+  // 32–64 chars unique ID: timestamp + random. Avoid reuse across attempts.  
+  const ts = Date.now().toString(36);
+  const rnd = crypto.randomBytes(12).toString('hex'); // 24 chars
+  return `${ts}${rnd}`; // ~30+ chars
+}
+
+
+function toLocalISO(date = new Date()) {
+  // Formats to ISO-8601 with timezone offset (e.g., 2026-03-15T12:34:56.789+02:00)
+  // Based on community solution used for VodaPay Request-Time formatting.  
+  const off = date.getTimezoneOffset();
+  const absoff = Math.abs(off);
+  const d = new Date(date.getTime() - off * 60 * 1000);
+  const base = d.toISOString().substring(0, 23);
+  const sign = off > 0 ? '-' : '+';
+  const hh = String(Math.floor(absoff / 60)).padStart(2, '0');
+  const mm = String(absoff % 60).padStart(2, '0');
+  return `${base}${sign}${hh}:${mm}`;
+}
+
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -15,8 +38,8 @@ export default async function handler(req, res) {
     const requestTime = new Date().toISOString().replace('Z', '+02:00');
     const signatureHeader = 'algorithm=RSA256,keyVersion=1,signature=testing_signatur';
  
-    const paymentRequestId = `PAY_${Date.now()}`;
-    const paymentExpiryTime = new Date(Date.now() + 30 * 60 * 1000).toISOString().replace('Z', '+02:00');
+    const paymentRequestId = uniquePaymentRequestId().toString();
+    const paymentExpiryTime = (toLocalISO(new Date(Date.now() + 30 * 60 * 1000))).toString();
  
     const body = {
       productCode: "CASHIER_PAYMENT",
