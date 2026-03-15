@@ -13,35 +13,46 @@ export function usePayment() {
   const error     = ref(null)
   const lastResult = ref(null)
  
-  async function pay(orderDetails) {
+  async function pay() {
     loading.value = true
     error.value   = null
  
     try {
+      const totalAmount = cartStore.totalPrice
+      const items = cartStore.items
+ 
+      if (totalAmount <= 0 || items.length === 0) {
+        throw new Error('Cart is empty. Please add items before checking out.')
+      }
+ 
       window.alert(
         '🟡 Creating order on backend...\n\n' +
-        `Total: R ${Number(orderDetails.totalAmount).toFixed(2)}\n` +
-        `Items: ${orderDetails.items?.length || 0}`
+        `Total: R ${totalAmount.toFixed(2)}\n` +
+        `Items: ${items.length}`
       )
  
       const orderResponse = await fetch('/api/orders/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: orderDetails.items,
-          totalAmount: orderDetails.totalAmount,
-          currency: orderDetails.currency || 'ZAR',
-          userId: authStore.user?.id,
+          items,
+          totalAmount,
+          currency: 'ZAR',
+          userId: authStore.user?.id || 'anonymous',
           description: 'VodaPay Store Purchase'
         })
       })
  
       if (!orderResponse.ok) {
-        const errText = await orderResponse.text()
-        throw new Error(`Order creation failed: ${errText}`)
+        const err = await orderResponse.json().catch(() => ({}));
+        throw new Error(err.error || `Order creation failed (${orderResponse.status})`);
       }
  
-      const { paymentUrl, paymentId, orderId } = await orderResponse.json()
+      const { paymentUrl, paymentId, orderId } = await orderResponse.json();
+ 
+      if (!paymentUrl) {
+        throw new Error('No paymentUrl returned from backend');
+      }
  
       window.alert(
         '✅ Order created\n\n' +
@@ -49,7 +60,6 @@ export function usePayment() {
         'Opening VodaPay cashier page...'
       )
  
-      // Send paymentUrl to Mini Program for my.tradePay
       const result = await triggerPayment(paymentUrl)
  
       lastResult.value = result
@@ -68,6 +78,7 @@ export function usePayment() {
     } catch (err) {
       error.value = err.message
       window.alert(`❌ Payment Error\n\n${error.value}`)
+      console.error('[pay] Error:', err)
       throw err
     } finally {
       loading.value = false

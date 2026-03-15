@@ -1,46 +1,56 @@
 // api/orders/create.js
 export default async function handler(req, res) {
-
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
  
-  const CLIENT_ID = '2020122653946739963336';
-  const requestTime = new Date().toISOString().replace('Z', '+02:00');
-  const signatureHeader = 'algorithm=RSA256,keyVersion=1,signature=testing_signatur';
+  try {
+    const { items, totalAmount = '2000', currency = 'ZAR', userId, description } = req.body || {};
  
-  const body = {
-        productCode: "CASHIER_PAYMENT",
-        salesCode: "51051000101000000011",
-        paymentNotifyUrl: "http://mock.vision.vodacom.aws.corp/mock/api/v1/payments/notifyPayment.htm",
-        paymentRequestId: "c0a83b17161398737179310015787",
-        paymentRedirectUrl: "https://vodapaystore.vercel.app/checkout",
-        paymentExpiryTime: "3022-02-re:49:31+02:00",
-        paymentAmount: {
-          currency:  "ZAR",
-           value: "2000"
-        },
-        order: {
-          goods: {
-            referenceGoodsId: "goods123",
-            goodsUnitAmount: {
-              currency:  "ZAR",
-              value: "2000"
-            },
-            goodsName: "VodaPay Store Purchase"
+    if (!totalAmount || totalAmount <= 0 || !items?.length) {
+      return res.status(400).json({ error: 'Missing totalAmount or items' });
+    }
+ 
+    const CLIENT_ID = '2020122653946739963336';
+    const requestTime = new Date().toISOString().replace('Z', '+02:00');
+    const signatureHeader = 'algorithm=RSA256,keyVersion=1,signature=testing_signatur';
+ 
+    const paymentRequestId = `PAY_${Date.now()}`;
+    const paymentExpiryTime = new Date(Date.now() + 30 * 60 * 1000).toISOString().replace('Z', '+02:00');
+ 
+    const body = {
+      productCode: "CASHIER_PAYMENT",
+      salesCode: "51051000101000000011",
+      paymentNotifyUrl: "https://vodapaystore.vercel.app/api/notify",
+      paymentRequestId: paymentRequestId,
+      paymentRedirectUrl: "https://vodapaystore.vercel.app/checkout",
+      paymentExpiryTime: paymentExpiryTime,
+      paymentAmount: {
+        currency: currency,
+        value: totalAmount.toString()
+      },
+      order: {
+        goods: {
+          referenceGoodsId: items[0]?.product?.id?.toString() || "goods123",
+          goodsUnitAmount: {
+            currency: currency,
+            value: totalAmount.toString()
           },
-          env: {
-            terminalType: "MINI_APP"
-          },
-          orderDescription: "VodaPay Store Purchase",
-          buyer: {
-            referenceBuyerId: "216610000000446291765" 
-          }
+          goodsName: items[0]?.product?.name || "VodaPay Store Purchase"
         },
+        env: {
+          terminalType: "MINI_APP"
+        },
+        orderDescription: description || "VodaPay Store Purchase",
+        buyer: {
+          referenceBuyerId: userId || "216610000000446291765"
+        }
+      },
       extendInfo: "{}"
     };
  
-  try {
+    console.log('[Backend] Sending to VodaPay:', body);
+ 
     const vodapayRes = await fetch('https://vodapay-gateway.sandbox.vfs.africa/v2/payments/pay', {
       method: 'POST',
       headers: {
@@ -51,23 +61,12 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify(body)
     });
-
-    window.alert('[Backend] Called VodaPay /payments/pay endpoint. HTTP status: ' + vodapayRes.status);
  
     const vodapayData = await vodapayRes.json();
  
-    window.alert('[Backend] VodaPay /payments/pay response:\n\n', JSON.stringify(vodapayData));
+    console.log('[Backend] VodaPay response:', vodapayData);
  
     if (vodapayData.result?.resultStatus === 'A' && vodapayData.redirectActionForm?.redirectUrl) {
-      // Store order in memory (for demo)
-      // global.orders = global.orders || [];
-      // global.orders.push({
-      //   orderId: paymentRequestId,
-      //   tradeNO: vodapayData.paymentId,
-      //   status: 'pending',
-      //   amount: totalAmount
-      // });
- 
       res.status(200).json({
         paymentUrl: vodapayData.redirectActionForm.redirectUrl,
         paymentId: vodapayData.paymentId,
@@ -75,11 +74,16 @@ export default async function handler(req, res) {
       });
     } else {
       res.status(400).json({ 
-        error: vodapayData.result?.resultMessage || 'Failed to create payment' 
+        error: vodapayData.result?.resultMessage || 
+               vodapayData.message || 
+               'Failed to create payment'
       });
     }
   } catch (err) {
-    console.error('[Backend] Error calling VodaPay:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('[Backend] Error:', err);
+    res.status(500).json({ 
+      error: 'Internal server error', 
+      message: err.message 
+    });
   }
 }
