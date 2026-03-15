@@ -78,17 +78,17 @@ export default async function handler(req, res) {
     }
 
     // Env
-    const CLIENT_ID     = process.env.VODAPAY_CLIENT_ID;
+    const CLIENT_ID     = process.env.VODAPAY_CLIENT_ID || '2020122653946739963336';
     const KEY_VERSION   = process.env.VODAPAY_KEY_VERSION || '1';
-    const PRIVATE_KEY   = process.env.VODAPAY_PRIVATE_KEY; // PKCS#8 PEM
+    //const PRIVATE_KEY   = process.env.VODAPAY_PRIVATE_KEY; // PKCS#8 PEM
     const SALES_CODE    = process.env.VODAPAY_SALES_CODE || '51051000101000000011';
     const BASE_URL      = process.env.VODAPAY_BASE_URL || 'https://vodapay-gateway.sandbox.vfs.africa';
     const NOTIFY_URL    = process.env.VODAPAY_NOTIFY_URL || 'https://example.com/api/vodapay/notify';
     const REDIRECT_URL  = process.env.VODAPAY_REDIRECT_URL || 'https://vodapaystore.vercel.app/checkout';
     const DEFAULT_BUYER = process.env.VODAPAY_DEFAULT_BUYER_ID || '216610000000446291765';
 
-    if (!CLIENT_ID || !PRIVATE_KEY) {
-      return badRequest(res, 'Server misconfigured: missing VODAPAY_CLIENT_ID or VODAPAY_PRIVATE_KEY.');
+    if (!CLIENT_ID /*|| !PRIVATE_KEY*/) {
+      return badRequest(res, 'Server misconfigured: missing VODAPAY_CLIENT_ID.');
     }
 
     // the official pay body 
