@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   }
  
   try {
-    const { items, totalAmount = '2000', currency = 'ZAR', userId, description } = req.body || {};
+    const { items, totalAmount, currency = 'ZAR', userId, description } = req.body || {};
  
     if (!totalAmount || totalAmount <= 0 || !items?.length) {
       return res.status(400).json({ error: 'Missing totalAmount or items' });

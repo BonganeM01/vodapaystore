@@ -36,9 +36,9 @@ export function usePayment() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items,
-          totalAmount,
+          totalAmount: totalAmount.toString() || '2000',
           currency: 'ZAR',
-          userId: authStore.user?.id || 'anonymous',
+          userId: authStore.user?.id,
           description: 'VodaPay Store Purchase'
         })
       })
