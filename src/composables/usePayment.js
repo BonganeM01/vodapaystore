@@ -48,13 +48,10 @@ export function usePayment() {
         throw new Error(err.error || `Order creation failed (${orderResponse.status})`);
       }
  
-      const { redirectActionForm, paymentId, orderId } = await orderResponse.json();
- 
-      // if (!redirectUrl) {
-      //   throw new Error('No paymentUrl returned from backend');
-      // }
+      const response = await orderResponse.json();
 
-      const paymentUrl = redirectActionForm?.redirectUrl;
+      const paymentId = response.paymentId;
+      const paymentUrl = response.redirectActionForm?.redirectUrl;
 
       if (!paymentUrl) {
         throw new Error('No redirect URL provided in order response');
