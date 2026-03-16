@@ -50,18 +50,24 @@ export function usePayment() {
  
       const { redirectActionForm, paymentId, orderId } = await orderResponse.json();
  
-      if (!redirectUrl) {
-        throw new Error('No paymentUrl returned from backend');
+      // if (!redirectUrl) {
+      //   throw new Error('No paymentUrl returned from backend');
+      // }
+
+      const paymentUrl = redirectActionForm?.redirectUrl;
+
+      if (!paymentUrl) {
+        throw new Error('No redirect URL provided in order response');
       }
  
       window.alert(
         '✅ Order created\n\n' +
         `Payment ID: ${paymentId}\n` +
-        `Payment URL: ${redirectActionForm.redirectUrl}\n` +
+        `Payment URL: ${paymentUrl}\n` +
         'Opening VodaPay cashier page...'
       )
  
-      const result = await triggerPayment(redirectActionForm.redirectUrl)
+      const result = await triggerPayment(paymentUrl)
  
       lastResult.value = result
  
