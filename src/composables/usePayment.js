@@ -90,21 +90,21 @@ export function usePayment() {
   }
  
   function triggerPayment(paymentUrl) {
-    return new Promise((resolve, reject) => {
-      const unsubSuccess = onMessage('PAYMENT_SUCCESS', (data) => {
-        unsubSuccess()
-        unsubFail()
-        resolve(data)
-      })
+    //return new Promise((resolve, reject) => {
+      // const unsubSuccess = onMessage('PAYMENT_SUCCESS', (data) => {
+      //   unsubSuccess()
+      //   unsubFail()
+      //   resolve(data)
+      // })
  
-      const unsubFail = onMessage('PAYMENT_FAIL', (data) => {
-        unsubSuccess()
-        unsubFail()
-        resolve({ ...data, cancelled: data.resultCode === '6001' })
-      })
+      // const unsubFail = onMessage('PAYMENT_FAIL', (data) => {
+      //   unsubSuccess()
+      //   unsubFail()
+      //   resolve({ ...data, cancelled: data.resultCode === '6001' })
+      // })
  
       sendToMiniProgram('INITIATE_PAYMENT', { paymentUrl })
-    })
+    //})
   }
  
   return { pay, loading, error, lastResult }

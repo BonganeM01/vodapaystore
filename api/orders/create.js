@@ -2,12 +2,11 @@
 import crypto from 'crypto';
 
 function uniquePaymentRequestId() {
-  // 32–64 chars unique ID: timestamp + random. Avoid reuse across attempts.  
+  // 32–64 chars unique ID
   const ts = Date.now().toString(36);
   const rnd = crypto.randomBytes(12).toString('hex'); // 24 chars
   return `${ts}${rnd}`; 
 }
-
 
 function toLocalISO(date = new Date()) {
   // Formats to ISO-8601 with timezone offset
@@ -20,7 +19,6 @@ function toLocalISO(date = new Date()) {
   const mm = String(absoff % 60).padStart(2, '0');
   return `${base}${sign}${hh}:${mm}`;
 }
-
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
