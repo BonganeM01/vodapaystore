@@ -1,4 +1,5 @@
 // api/orders/create.js
+import crypto from 'crypto';
 
 function uniquePaymentRequestId() {
   // 32–64 chars unique ID: timestamp + random. Avoid reuse across attempts.  
