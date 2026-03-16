@@ -56,7 +56,7 @@ export function usePayment() {
  
       window.alert(
         '✅ Order created\n\n' +
-        `Payment ID: ${paymentId}\n` +
+        `Payment ID: ${paymentUrl}\n` +
         'Opening VodaPay cashier page...'
       )
  
