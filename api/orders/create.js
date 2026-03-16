@@ -4,13 +4,12 @@ function uniquePaymentRequestId() {
   // 32–64 chars unique ID: timestamp + random. Avoid reuse across attempts.  
   const ts = Date.now().toString(36);
   const rnd = crypto.randomBytes(12).toString('hex'); // 24 chars
-  return `${ts}${rnd}`; // ~30+ chars
+  return `${ts}${rnd}`; 
 }
 
 
 function toLocalISO(date = new Date()) {
-  // Formats to ISO-8601 with timezone offset (e.g., 2026-03-15T12:34:56.789+02:00)
-  // Based on community solution used for VodaPay Request-Time formatting.  
+  // Formats to ISO-8601 with timezone offset
   const off = date.getTimezoneOffset();
   const absoff = Math.abs(off);
   const d = new Date(date.getTime() - off * 60 * 1000);
@@ -44,7 +43,7 @@ export default async function handler(req, res) {
     const body = {
       productCode: "CASHIER_PAYMENT",
       salesCode: "51051000101000000011",
-      paymentNotifyUrl: "https://vodapaystore.vercel.app/api/notify",
+      paymentNotifyUrl: "http://mock.vision.vodacom.aws.corp/mock/api/v1/payments/notifyPayment.htm",
       paymentRequestId: paymentRequestId,
       paymentRedirectUrl: "https://vodapaystore.vercel.app/checkout",
       paymentExpiryTime: paymentExpiryTime,
@@ -99,7 +98,8 @@ export default async function handler(req, res) {
       res.status(400).json({ 
         error: vodapayData.result?.resultMessage || 
                vodapayData.message || 
-               'Failed to create payment'
+               'Failed to create payment',
+        fullResponse: vodapayData
       });
     }
   } catch (err) {
