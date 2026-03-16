@@ -16,9 +16,21 @@ export default defineConfig({
     outDir: 'dist',
     // Ensure assets are inlined or kept small for fast WebView loading
     assetsInlineLimit: 4096,
-    // rollupOptions: {
-    //   external: ['fsevents'],
-    // },
+    rollupOptions: {
+      external: [
+        'node:module',
+        'fsevents',
+        'node:fs',
+        'node:path',
+        'node:url'
+      ],
+      output: {
+        manualChunks: undefined,
+      },
+    },
+
+    target: 'es2020',
+    minify: 'esbuild',
   },
   server: {
     port: 3000,
