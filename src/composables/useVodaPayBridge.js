@@ -71,7 +71,7 @@ export function useVodaPayBridge() {
       console.warn('[Bridge] Cannot send — not in mini program:', action, payload)
       return
     }
-    console.log('[Bridge] Sending to Mini Program:', action, payload)
+    window.alert('[Bridge] Sending to Mini Program:', action, payload)
     my.postMessage({ action, payload })
   }
 
