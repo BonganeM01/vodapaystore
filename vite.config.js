@@ -16,12 +16,15 @@ export default defineConfig({
     outDir: 'dist',
     // Ensure assets are inlined or kept small for fast WebView loading
     assetsInlineLimit: 4096,
+    rollupOptions: {
+      external: ['fsevents'],
+    },
   },
   server: {
     port: 3000,
     host: true,
     allowedHosts: [
-      'nonplanetary-travelled-dewitt.ngrok-free.dev',
+      'https://vodapaystore.vercel.app/', 
     ],
   },
 })
