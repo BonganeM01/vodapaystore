@@ -51,7 +51,7 @@ export function usePayment() {
       const response = await orderResponse.json();
 
       const paymentId = response.paymentId;
-      const paymentUrl = (response && response.redirectActionForm && response.redirectActionForm.redirectUrl) || response.redirectUrl || null;
+      const paymentUrl = (response && response.paymentUrl) || (response && response.redirectActionForm && response.redirectActionForm.redirectUrl) || null
 
       if (!paymentUrl) {
         throw new Error('No redirect URL provided in order response');
