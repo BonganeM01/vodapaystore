@@ -3,20 +3,19 @@ import { ref } from 'vue'
 import { useVodaPayBridge } from './useVodaPayBridge'
 import { useCartStore } from '@/stores/cart'
 import { useAuthStore } from '@/stores/auth'
-import { send } from 'vite'
  
 export function usePayment() {
-  const { sendToMiniProgram } = useVodaPayBridge()
+  const { sendToMiniProgram, onMessage } = useVodaPayBridge()
   const cartStore = useCartStore()
   const authStore = useAuthStore()
  
-  const isLoading   = ref(false)
-  const lastErrorMessage = ref(null)
+  const loading   = ref(false)
+  const error     = ref(null)
   const lastResult = ref(null)
  
   async function pay() {
-    isLoading.value = true
-    lastErrorMessage.value   = null
+    loading.value = true
+    error.value   = null
  
     try {
       const totalAmount = cartStore.totalPrice
@@ -67,22 +66,123 @@ export function usePayment() {
  
       sendToMiniProgram('INITIATE_PAYMENT', { paymentUrl })
 
-      return {paymentId: paymentId, paymentUrl: paymentUrl}
 
+ 
+      
+      // const normalizedResultCode = result && result.resultCode? result.resultCode : 'UNKNOWN'
+
+      
+      // if (normalizedResultCode === '9000') {
+      //   cartStore.clearCart()
+      //   window.alert('📩 Payment SUCCESS – Order confirmed!')
+      // } else if (normalizedResultCode === '6001') {
+      //   window.alert('📩 Payment CANCELLED')
+      // } else {
+      //   const readableErrorMessage =
+      //     (paymentResult && (paymentResult.errMsg || paymentResult.message || paymentResult.error)) ||
+      //     'Unknown error'
+      //   window.alert('❌ Payment FAILED: ' + readableErrorMessage + ' (' + normalizedResultCode + ')')
+      // }
+      //return paymentResult
     } catch (err) {
-
-      lastErrorMessage.value = err && err.message ? err.message : String(err)
+      error.value = err && err.message ? err.message : String(err)
+      window.alert('❌ Payment Error\n\n' + error.value)
       console.error('[pay] Error:', err)
-      window.alert('❌ Payment Error\n\n' + lastErrorMessage.value)
       throw err
-
     } finally {
-      isLoading.value = false
+      loading.value = false
     }
 
   }
+  
+  // function normalizePaymentPayload(incomingPayload) {
+  //   if (!incomingPayload) {
+  //     return { resultCode: 'UNKNOWN', errMsg: 'No payload from bridge', raw: incomingPayload }
+  //   }
 
-  return { pay, loading: isLoading, error: lastErrorMessage }
+  //   var resultCode = null
+  //   var errorMessage = null
+
+  //   // Common shapes:
+  //   // - { resultCode: '9000' }
+  //   // - { code: '9000' }
+  //   // - { result: { resultCode: '9000', resultMessage: '...' } }
+  //   // - { status: 'SUCCESS' | 'CANCELLED' | 'FAIL' }
+  //   if (incomingPayload.resultCode) {
+  //     resultCode = incomingPayload.resultCode
+  //   } else if (incomingPayload.code) {
+  //     resultCode = incomingPayload.code
+  //   } else if (incomingPayload.result && incomingPayload.result.resultCode) {
+  //     resultCode = incomingPayload.result.resultCode
+  //   } else if (incomingPayload.status) {
+  //     var upperStatus = String(incomingPayload.status).toUpperCase()
+  //     if (upperStatus === 'SUCCESS' || upperStatus === 'OK') resultCode = '9000'
+  //     else if (upperStatus === 'CANCEL' || upperStatus === 'CANCELLED') resultCode = '6001'
+  //     else resultCode = 'FAIL'
+  //   } else {
+  //     resultCode = 'UNKNOWN'
+  //   }
+
+  //   if (incomingPayload.errMsg) errorMessage = incomingPayload.errMsg
+  //   else if (incomingPayload.message) errorMessage = incomingPayload.message
+  //   else if (incomingPayload.error) errorMessage = incomingPayload.error
+  //   else if (incomingPayload.result && incomingPayload.result.resultMessage) {
+  //     errorMessage = incomingPayload.result.resultMessage
+  //   } else {
+  //     errorMessage = null
+  //   }
+
+  //   var merged = {}
+  //   try {
+  //     for (var key in incomingPayload) { merged[key] = incomingPayload[key] }
+  //   } catch (e) {}
+
+  //   merged.resultCode = resultCode
+  //   if (errorMessage) merged.errMsg = errorMessage
+
+  //   return merged
+  // }
+ 
+  // function triggerPayment(paymentUrl) {
+   
+  // return new Promise(function(resolve) {
+  //     // Safety timeout if no events are received
+  //     var responseTimeout = setTimeout(function() {
+  //       console.warn('[triggerPayment] Timeout waiting for payment events')
+  //       resolve({ resultCode: 'TIMEOUT', errMsg: 'No response from cashier within 120s' })
+  //     }, 120000)
+
+  //     function cleanup() {
+  //       try {
+  //         if (unsubscribeSuccess) unsubscribeSuccess()
+  //         if (unsubscribeFail) unsubscribeFail()
+  //       } catch (e) {}
+  //       clearTimeout(responseTimeout)
+  //     }
+
+  //     var unsubscribeSuccess = onMessage('PAYMENT_SUCCESS', function(eventPayload) {
+  //       cleanup()
+  //       var normalized = normalizePaymentPayload(eventPayload)
+  //       resolve(normalized)
+  //     })
+
+  //     var unsubscribeFail = onMessage('PAYMENT_FAIL', function(eventPayload) {
+  //       cleanup()
+  //       var normalized = normalizePaymentPayload(eventPayload)
+  //       var isCancelled = normalized && normalized.resultCode === '6001'
+  //       var finalResult = {}
+  //       try {
+  //         for (var k in normalized) { finalResult[k] = normalized[k] }
+  //       } catch (e) {}
+  //       finalResult.cancelled = isCancelled
+  //       resolve(finalResult)
+  //     })
+ 
+  //     sendToMiniProgram('INITIATE_PAYMENT', { paymentUrl })
+  //   })
+  // }
+ 
+  return { pay, loading, error, lastResult }
 }
 
 

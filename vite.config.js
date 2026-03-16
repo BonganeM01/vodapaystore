@@ -16,9 +16,9 @@ export default defineConfig({
     outDir: 'dist',
     // Ensure assets are inlined or kept small for fast WebView loading
     assetsInlineLimit: 4096,
-    rollupOptions: {
-      external: ['fsevents'],
-    },
+    // rollupOptions: {
+    //   external: ['fsevents'],
+    // },
   },
   server: {
     port: 3000,
