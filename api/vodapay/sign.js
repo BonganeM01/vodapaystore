@@ -41,21 +41,22 @@ export default async function handler(req, res) {
     }
 
     const PRIVATE_KEY = process.env.VODAPAY_PRIVATE_KEY;
+
     if (!PRIVATE_KEY) {
       return res.status(500).json({ error: 'Private key not configured' });
     }
 
     // Optional, but recommended: allow key version to be controlled via env
-    const KEY_VERSION = process.env.VODAPAY_KEY_VERSION || '1';
+    //const KEY_VERSION = process.env.VODAPAY_KEY_VERSION || '1';
 
     const { stringToSign, bodyStr } = buildStringToSign(method, path, clientId, requestTime, body);
     console.log('[Sign] String to sign:\n', stringToSign);
-
+    console.log('[Sign] Private Key:\n', PRIVATE_KEY);
     const signer = crypto.createSign('RSA-SHA256');
     signer.update(stringToSign, 'utf8');
     const sigBase64 = signer.sign(PRIVATE_KEY).toString('base64');
 
-    // URL-encode the signature as per reference implementation
+    // URL-encode the signature
     const sigEncoded = encodeURIComponent(sigBase64);
 
     const signatureHeader = `algorithm=RSA256,keyVersion=${KEY_VERSION},signature=${sigEncoded}`;
