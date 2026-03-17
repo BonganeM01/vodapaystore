@@ -47,13 +47,19 @@ export default async function handler(req, res) {
     }
 
     const { stringToSign, bodyStr } = buildStringToSign(method, path, clientId, requestTime, body);
-    console.log('[Sign] String to sign:\n', stringToSign);
+
+    console.log('String to sign:\n', stringToSign);
+    console.log('Request time: ', requestTime);
 
     const privateKeyObj = crypto.createPrivateKey(PRIVATE_KEY, 'utf8');
     const signer = crypto.createSign('RSA-SHA256');
     signer.write(stringToSign);
     signer.end();
     const encodedSignature = signer.sign(privateKeyObj, 'base64');
+
+    console.log('Private Key:\n', PRIVATE_KEY);
+    
+    console.log('Generated Signature:\n', encodedSignature);
 
     const signatureHeader = `algorithm=RSA256,keyVersion=1,signature=${encodedSignature}`;
 

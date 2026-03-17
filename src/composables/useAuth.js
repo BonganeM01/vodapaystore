@@ -127,7 +127,7 @@ export function useAuth() {
     }
  
     const CLIENT_ID = '2020122653946739963336'
-    const requestTime= ' 2026-07-29T15:32:09.000+02:00'
+    const requestTime = ' 2026-07-29T15:32:09.000+02:00'
     //const requestTime = new Date().toISOString().replace('Z', '+02:00')
     //const signatureHeader = 'algorithm=RSA256,keyVersion=1,signature=testing_signatur'
 
