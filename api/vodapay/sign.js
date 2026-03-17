@@ -12,7 +12,7 @@ function buildStringToSign(method, path, clientId, requestTime, body) {
   if (typeof body === 'string') {
     bodyStr = body;
   } else if (body && typeof body === 'object') {
-    bodyStr = JSON.stringify(body); // no spacing; matches fetch/axios defaults
+    bodyStr = JSON.stringify(body); // no spacing
   }
 
   // <HTTP_METHOD> <HTTP_URI>\n<Client-Id>.<Request-Time>.<HTTP_BODY>
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Pull required header values (case-sensitive on the wire, but we accept either here)
+    // Pull required header values
     const clientId = normalizeHeader(headers, 'Client-Id');
     const requestTime = normalizeHeader(headers, 'Request-Time') || normalizeHeader(headers, 'request-time');
 
@@ -46,20 +46,16 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Private key not configured' });
     }
 
-    // Optional, but recommended: allow key version to be controlled via env
-    //const KEY_VERSION = process.env.VODAPAY_KEY_VERSION || '1';
-
     const { stringToSign, bodyStr } = buildStringToSign(method, path, clientId, requestTime, body);
     console.log('[Sign] String to sign:\n', stringToSign);
-    console.log('[Sign] Private Key:\n', PRIVATE_KEY);
+
+    const privateKeyObj = crypto.createPrivateKey(PRIVATE_KEY);
     const signer = crypto.createSign('RSA-SHA256');
-    signer.update(stringToSign, 'utf8');
-    const sigBase64 = signer.sign(PRIVATE_KEY).toString('base64');
+    signer.write(stringToSign);
+    signer.end();
+    const encodedSignature = signer.sign(privateKeyObj).toString('base64');
 
-    // URL-encode the signature
-    const sigEncoded = encodeURIComponent(sigBase64);
-
-    const signatureHeader = `algorithm=RSA256,keyVersion=1,signature=${sigEncoded}`;
+    const signatureHeader = `algorithm=RSA256,keyVersion=1,signature=${encodedSignature}`;
 
     return res.status(200).json({
       signature: signatureHeader,
