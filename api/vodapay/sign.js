@@ -1,29 +1,24 @@
 // api/vodapay/sign.js
 import crypto from 'crypto';
 
-function buildStringToSign(method, path, headers, body) {
-  let str = `${method.toUpperCase()} ${path}\n`;
+function normalizeHeader(headers, name) {
+  // Accept both canonical case and lowercase to avoid breaking callers
+  return headers[name] || headers[name.toLowerCase()] || headers[name.replace(/-/g, '').toLowerCase()];
+}
 
-  // Headers: lowercase keys, original values, sorted
-  const headerLines = Object.entries(headers)
-    .map(([k, v]) => `${k.toLowerCase()}:${v}`)
-    .sort((a, b) => a.localeCompare(b));
-
-  str += headerLines.join('\n');
-
-  // Body: exact JSON string
+function buildStringToSign(method, path, clientId, requestTime, body) {
+  // Body must be the exact JSON string that will be sent
   let bodyStr = '';
   if (typeof body === 'string') {
     bodyStr = body;
   } else if (body && typeof body === 'object') {
-    bodyStr = JSON.stringify(body); // no extra spaces!
+    bodyStr = JSON.stringify(body); // no spacing; matches fetch/axios defaults
   }
 
-  if (bodyStr) {
-    str += '\n' + bodyStr;
-  }
-
-  return str;
+  // <HTTP_METHOD> <HTTP_URI>\n<Client-Id>.<Request-Time>.<HTTP_BODY>
+  const firstLine = `${String(method || '').toUpperCase()} ${path || ''}`;
+  const secondLine = `${clientId || ''}.${requestTime || ''}.${bodyStr}`;
+  return { stringToSign: `${firstLine}\n${secondLine}`, bodyStr };
 }
 
 export default async function handler(req, res) {
@@ -32,37 +27,50 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { method, path, headers, body } = req.body;
-
+    const { method, path, headers, body } = req.body || {};
     if (!method || !path || !headers) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const PRIVATE_KEY = process.env.VODAPAY_PRIVATE_KEY;
+    // Pull required header values (case-sensitive on the wire, but we accept either here)
+    const clientId = normalizeHeader(headers, 'Client-Id');
+    const requestTime = normalizeHeader(headers, 'Request-Time') || normalizeHeader(headers, 'request-time');
 
+    if (!clientId || !requestTime) {
+      return res.status(400).json({ error: 'Missing Client-Id or Request-Time header values' });
+    }
+
+    const PRIVATE_KEY = process.env.VODAPAY_PRIVATE_KEY;
     if (!PRIVATE_KEY) {
       return res.status(500).json({ error: 'Private key not configured' });
     }
 
-    const stringToSign = buildStringToSign(method, path, headers, body);
+    // Optional, but recommended: allow key version to be controlled via env
+    const KEY_VERSION = process.env.VODAPAY_KEY_VERSION || '1';
+
+    const { stringToSign, bodyStr } = buildStringToSign(method, path, clientId, requestTime, body);
     console.log('[Sign] String to sign:\n', stringToSign);
 
     const signer = crypto.createSign('RSA-SHA256');
-    signer.update(stringToSign);
-    const signature = signer.sign(PRIVATE_KEY, 'base64');
+    signer.update(stringToSign, 'utf8');
+    const sigBase64 = signer.sign(PRIVATE_KEY).toString('base64');
 
-    const signatureHeader = `algorithm=RSA256,keyVersion=1,signature=${signature}`;
+    // URL-encode the signature as per reference implementation
+    const sigEncoded = encodeURIComponent(sigBase64);
 
-    res.status(200).json({
+    const signatureHeader = `algorithm=RSA256,keyVersion=${KEY_VERSION},signature=${sigEncoded}`;
+
+    return res.status(200).json({
       signature: signatureHeader,
-      debug: { stringToSign } // for troubleshooting
+      debug: { stringToSign, bodyStr }
     });
   } catch (err) {
-    console.error('[Sign] Error:', err.message);
-    res.status(500).json({
+    console.error('[Sign] Error:', err);
+    return res.status(500).json({
       error: 'Failed to generate signature',
-      message: err.message
+      message: err && err.message ? err.message : String(err)
     });
   }
 }
+
  
