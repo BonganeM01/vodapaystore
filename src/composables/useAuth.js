@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useVodaPayBridge } from './useVodaPayBridge'
 import { useAuthStore } from '@/stores/auth'
+import path from 'path'
 
 export function useAuth() {
   const { sendToMiniProgram, onMessage } = useVodaPayBridge()
@@ -127,11 +128,38 @@ export function useAuth() {
  
     const CLIENT_ID = '2020122653946739963336'
     const requestTime = new Date().toISOString().replace('Z', '+02:00')
-    const signatureHeader = 'algorithm=RSA256,keyVersion=1,signature=testing_signatur'
+    //const signatureHeader = 'algorithm=RSA256,keyVersion=1,signature=testing_signatur'
 
-    console.log('[exchangeAuthCode] Using Client-Id:', CLIENT_ID)
- 
-    const tokenResponse = await fetch('https://vodapay-gateway.sandbox.vfs.africa/v2/authorizations/applyToken', {
+    // Get signature from backend
+    const signRes = await fetch('/api/vodapay/sign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        method: 'POST',
+        path: '/v2/authorizations/applyTokenSigned',
+        headers: {
+          'Content-Type': 'application/json',
+          'Client-Id': CLIENT_ID,
+          'Request-Time': requestTime
+        },
+        body: JSON.stringify({
+          grantType: 'AUTHORIZATION_CODE',
+          authCode: authCode
+        })
+      })
+    })
+
+    if(!signRes.ok) {
+      const err = await signRes.text()
+      window.alert(`[exchangeAuthCode] Signature request failed: ${signRes.status} - ${err}`)
+      throw new Error(`Failed to get signature: ${signRes.status} - ${err}`)
+    }
+
+    const { signature } = await signRes.json()
+
+    window.alert(`[exchangeAuthCode] Received signature from backend:\n\n${signature}\n\nNow calling VodaPay token endpoint...`)
+
+    const tokenResponse = await fetch('https://vodapay-gateway.sandbox.vfs.africa/v2/authorizations/applyTokenSigned', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

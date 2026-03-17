@@ -100,7 +100,7 @@
 // }
 
 
-// // src/composables/usePayment.js
+// src/composables/usePayment.js
 import { ref } from 'vue'
 import { useVodaPayBridge } from './useVodaPayBridge'
 import { useCartStore } from '@/stores/cart'
@@ -114,108 +114,96 @@ export function usePayment() {
   const loading   = ref(false)
   const error     = ref(null)
   const lastResult = ref(null)
-
  
   async function pay() {
     loading.value = true
     error.value   = null
  
     try {
-
       const totalAmount = cartStore.totalPrice
       const items = cartStore.items
-
-      if(!totalAmount || items.length === 0){
-        throw new Error('Cart is empty. Please add items before checking out.')
+ 
+      if (totalAmount <= 0 || items.length === 0) {
+        throw new Error('Cart is empty')
       }
-
-      window.alert(
-        '🟡 Creating order on backend...\n\n' +
-        `Total: R ${Number(totalAmount).toFixed(2)}\n` +
-        `Items: ${items.length}`
-      )
-      
-      const CLIENT_ID = '2020122653946739963336';
-      const requestTime = new Date().toISOString().replace('Z', '+02:00');
-      const signatureHeader = 'algorithm=RSA256,keyVersion=1,signature=testing_signatur'; 
-
+ 
+      const CLIENT_ID = '2020122653946739963336'
+      const requestTime = new Date().toISOString().replace('Z', '+02:00')
+ 
       const body = {
-        "productCode": "CASHIER_PAYMENT",
-        "salesCode": "51051000101000000011",
-        "paymentNotifyUrl": "http://mock.vision.vodacom.aws.corp/mock/api/v1/payments/notifyPayment.htm",
-        "paymentRequestId": "c0a83b17161398737179310015875",
-        "paymentRedirectUrl": "https://vodapaystore.vercel.app/checkout",
-        "paymentExpiryTime": "3022-02-28T14:49:31+02:00",
-        "paymentAmount": {
-          "currency":  "ZAR",
-           "value": "2000"
-        },
-        "order": {
-          "goods": {
-            "referenceGoodsId": "goods123",
-            "goodsUnitAmount": {
-              "currency":  "ZAR",
-              "value": "2000"
-            },
-            "goodsName": "VodaPay Store Purchase"
+        productCode: "CASHIER_PAYMENT",
+        salesCode: "51051000101000000011",
+        paymentNotifyUrl: "https://vodapaystore.vercel.app/api/notify",
+        paymentRequestId: `PAY_${Date.now()}`,
+        paymentRedirectUrl: "https://vodapaystore.vercel.app/checkout",
+        paymentExpiryTime: new Date(Date.now() + 30 * 60 * 1000).toISOString().replace('Z', '+02:00'),
+        paymentAmount: { currency: "ZAR", value: totalAmount.toString() },
+        order: {
+          goods: {
+            referenceGoodsId: items[0]?.product?.id?.toString() || "goods123",
+            goodsUnitAmount: { currency: "ZAR", value: totalAmount.toString() },
+            goodsName: items[0]?.product?.name || "VodaPay Store Purchase"
           },
-          "env": {
-            "terminalType" : "MINI_APP"
-          },
-          "orderDescription": "VodaPay Store Purchase",
-          "buyer": {
-            "referenceBuyerId": authStore.user?.id || "216610000000446291765"
-          }
+          env: { terminalType: "MINI_APP" },
+          orderDescription: "VodaPay Store Purchase",
+          buyer: { referenceBuyerId: authStore.user?.id || "anonymous" }
         },
-        "extendInfo": "{}"
-      };
-
-      const orderResponse = await fetch('https://vodapay-gateway.sandbox.vfs.africa/v2/payments/pay', {
+        extendInfo: "{}"
+      }
+ 
+      // Step 1: Get signature from backend
+      const signRes = await fetch('/api/vodapay/sign', {
         method: 'POST',
-        headers: { 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          method: 'POST',
+          path: '/v2/payments/pay',
+          headers: {
+            'Client-Id': CLIENT_ID,
+            'Request-Time': requestTime
+          },
+          body: body
+        })
+      })
+ 
+      const { signature } = await signRes.json()
+ 
+      // Step 2: Call real VodaPay API with signature
+      const vodapayRes = await fetch('https://vodapay-gateway.sandbox.vfs.africa/v2/payments/pay', {
+        method: 'POST',
+        headers: {
           'Content-Type': 'application/json',
           'Client-Id': CLIENT_ID,
           'Request-Time': requestTime,
-          'Signature': signatureHeader
+          'Signature': signature
         },
         body: JSON.stringify(body)
       })
-
-      window.alert("[Backend] Order creation response status: " + JSON.stringify(orderResponse.status))
  
-      if (!orderResponse.ok) {
-        const errText = await orderResponse.text()
-        throw new Error(`Order creation failed: ${errText}`)
+      const vodapayData = await vodapayRes.json()
+ 
+      window.alert('[Payment] FULL RESPONSE:\n\n' + JSON.stringify(vodapayData, null, 2))
+ 
+      const paymentUrl = vodapayData.redirectActionForm?.redirectUrl
+ 
+      if (!paymentUrl) {
+        throw new Error('No paymentUrl received')
       }
-
-      const apiResponse = await orderResponse.json()
-
-      window.alert("[Backend] Order creation Full response: \n\n" + JSON.stringify(apiResponse, null, 2))
-
-      const paymentUrl = apiResponse?.redirectActionForm?.redirectUrl;
-      const paymentId = apiResponse?.paymentId;
  
-      // Send paymentUrl to Mini Program for my.tradePay
       const result = await triggerPayment(paymentUrl)
  
       lastResult.value = result
  
       if (result.resultCode === '9000') {
         cartStore.clearCart()
-        window.alert('📩 Payment SUCCESS – Order confirmed!')
+        window.alert('Payment SUCCESS!')
       } else if (result.resultCode === '6001') {
-        window.alert('📩 Payment CANCELLED')
+        window.alert('Payment CANCELLED')
       } else {
-        window.alert(`❌ Payment FAILED: ${result.errMsg || result.resultCode}`)
+        window.alert(`Payment FAILED: ${result.errMsg || result.resultCode}`)
       }
-
-      window.alert(
-        '✅ Order created\n\n' +
-        `Payment ID: ${paymentId}\n` +
-        'Opening VodaPay cashier page...'
-      )
-
-      return result;
+ 
+      return result
  
     } catch (err) {
       error.value = err.message
@@ -229,14 +217,11 @@ export function usePayment() {
   function triggerPayment(paymentUrl) {
     return new Promise((resolve, reject) => {
       const unsubSuccess = onMessage('PAYMENT_SUCCESS', (data) => {
-        unsubSuccess()
-        unsubFail()
-        resolve(data)
+        unsubSuccess(); unsubFail(); resolve(data)
       })
  
       const unsubFail = onMessage('PAYMENT_FAIL', (data) => {
-        unsubSuccess()
-        unsubFail()
+        unsubSuccess(); unsubFail()
         resolve({ ...data, cancelled: data.resultCode === '6001' })
       })
  
@@ -246,7 +231,6 @@ export function usePayment() {
  
   return { pay, loading, error, lastResult }
 }
-
 
 
 
