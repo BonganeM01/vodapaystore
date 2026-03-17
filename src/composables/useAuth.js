@@ -165,7 +165,7 @@ export function useAuth() {
         'Content-Type': 'application/json',
         'Client-Id': CLIENT_ID,
         'Request-Time': requestTime,
-        'Signature': signatureHeader
+        'Signature': signature
       },
       body: JSON.stringify({
         grantType: 'AUTHORIZATION_CODE',
