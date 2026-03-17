@@ -59,7 +59,7 @@ export default async function handler(req, res) {
     // URL-encode the signature
     const sigEncoded = encodeURIComponent(sigBase64);
 
-    const signatureHeader = `algorithm=RSA256,keyVersion=${KEY_VERSION},signature=${sigEncoded}`;
+    const signatureHeader = `algorithm=RSA256,keyVersion=1,signature=${sigEncoded}`;
 
     return res.status(200).json({
       signature: signatureHeader,
