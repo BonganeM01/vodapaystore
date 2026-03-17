@@ -7,7 +7,7 @@ function normalizeHeader(headers, name) {
 }
 
 function buildStringToSign(method, path, clientId, requestTime, body) {
-  // Body must be the exact JSON string that will be sent
+
   let bodyStr = '';
   if (typeof body === 'string') {
     bodyStr = body;
@@ -49,7 +49,7 @@ export default async function handler(req, res) {
     const { stringToSign, bodyStr } = buildStringToSign(method, path, clientId, requestTime, body);
     console.log('[Sign] String to sign:\n', stringToSign);
 
-    const privateKeyObj = crypto.createPrivateKey(PRIVATE_KEY);
+    const privateKeyObj = crypto.createPrivateKey(PRIVATE_KEY, 'utf8');
     const signer = crypto.createSign('RSA-SHA256');
     signer.write(stringToSign);
     signer.end();
