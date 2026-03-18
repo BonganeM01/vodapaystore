@@ -113,7 +113,7 @@ function uniquePaymentRequestId() {
 
   // 16 random bytes → 32 hex chars
   const arr = new Uint8Array(16);
-  crypto.getRandomValues(arr);
+  crypto.webcrypto.getRandomValues(arr);
 
   let hex = '';
   for (let i = 0; i < arr.length; i++) {
