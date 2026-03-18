@@ -1,36 +1,54 @@
 // api/vodapay/sign.js
 import crypto from 'crypto';
 
-function buildStringToSign(method, path, headers, body) {
-  // 1. First line: METHOD & PATH
-  let lines = [`${String(method || '').toUpperCase()} ${String(path || '')}`];
+function normalizeHeader(headers, name) {
+  // Accept both canonical case and lowercase to avoid breaking callers
+  return headers[name] || headers[name.toLowerCase()] || headers[name.replace(/-/g, '').toLowerCase()];
+}
 
-  // 2. Header lines: client-id and request-time only
-  const clientId = headers['Client-Id'] || headers['client-id'];
-  const requestTime = headers['Request-Time'] || headers['request-time'];
-
-  if (clientId) {
-    lines.push(`client-id:${clientId}`);
-  }
-  if (requestTime) {
-    lines.push(`request-time:${requestTime}`);
-  }
-
-  // 3. Body line: no extra spaces)
+function buildStringToSign(method, path, clientId, requestTime, body) {
+  // Normalize body to a compact string with no spaces
   let bodyStr = '';
   if (typeof body === 'string') {
     bodyStr = body;
   } else if (body && typeof body === 'object') {
-    bodyStr = JSON.stringify(body); // no extra spaces
+    bodyStr = JSON.stringify(body); // no spacing
+  } else if (body != null) {
+    bodyStr = String(body);
   }
 
-  if (bodyStr) {
-    lines.push(bodyStr);
-  }
+  // Trim all parts to eliminate accidental leading/trailing spaces
+  const methodStr = String(method || '').trim().toUpperCase();
+  const pathStr = String(path || '').trim();
+  const clientIdStr = String(clientId || '').trim();
+  const requestTimeStr = String(requestTime || '').trim();
+  const bodyStrTrimmed = String(bodyStr || '').trim();
 
-  // Join with newlines
-  return lines.join('\n');
+  // First line: "<HTTP_METHOD> <HTTP_URI>" (no double spaces)
+  const firstLine = [methodStr, pathStr].filter(Boolean).join(' ');
+
+  // Second line: "<Client-Id>.<Request-Time>.<HTTP_BODY>" with no extra spaces
+  const secondLine = [clientIdStr, requestTimeStr, bodyStrTrimmed]
+    .filter(function (part) { return part !== ''; })
+    .join('.');
+
+  return { stringToSign: firstLine + '\n' + secondLine, bodyStr: bodyStrTrimmed };
 }
+
+// function buildStringToSign(method, path, clientId, requestTime, body) {
+
+//   let bodyStr = '';
+//   if (typeof body === 'string') {
+//     bodyStr = body;
+//   } else if (body && typeof body === 'object') {
+//     bodyStr = JSON.stringify(body); // no spacing
+//   }
+
+//   // <HTTP_METHOD> <HTTP_URI>\n<Client-Id>.<Request-Time>.<HTTP_BODY>
+//   const firstLine = `${String(method || '').toUpperCase()} ${path || ''}`;
+//   const secondLine = `${clientId || ''}.${requestTime || ''}.${bodyStr}`;
+//   return { stringToSign: `${firstLine}\n${secondLine}`, bodyStr };
+// }
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -39,16 +57,16 @@ export default async function handler(req, res) {
 
   try {
     const { method, path, headers, body } = req.body || {};
-
     if (!method || !path || !headers) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const clientId = headers['Client-Id'] || headers['client-id'];
-    const requestTime = headers['Request-Time'] || headers['request-time'];
+    // Pull required header values
+    const clientId = normalizeHeader(headers, 'Client-Id');
+    const requestTime = normalizeHeader(headers, 'Request-Time') || normalizeHeader(headers, 'request-time');
 
     if (!clientId || !requestTime) {
-      return res.status(400).json({ error: 'Missing Client-Id or Request-Time' });
+      return res.status(400).json({ error: 'Missing Client-Id or Request-Time header values' });
     }
 
     const PRIVATE_KEY = process.env.VODAPAY_PRIVATE_KEY;
@@ -57,26 +75,32 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Private key not configured' });
     }
 
-    const stringToSign = buildStringToSign(method, path, headers, body);
-    console.log('[Sign] String to sign:\n' + stringToSign);
+    const { stringToSign, bodyStr } = buildStringToSign(method, path, clientId, requestTime, body);
 
-    const privateKeyObj = crypto.createPrivateKey(PRIVATE_KEY, 'otf8');
+    console.log('String to sign:\n', stringToSign);
+    console.log('Request time: ', requestTime);
+
+    const privateKeyObj = crypto.createPrivateKey(PRIVATE_KEY, 'utf8');
     const signer = crypto.createSign('RSA-SHA256');
     signer.write(stringToSign);
     signer.end();
-    const signature = signer.sign(privateKeyObj, 'base64');
+    const encodedSignature = signer.sign(privateKeyObj, 'base64');
 
-    const signatureHeader = `algorithm=RSA256,keyVersion=1,signature=${signature}`;
+    console.log('Private Key:\n', PRIVATE_KEY);
+    
+    console.log('Generated Signature:\n', encodedSignature);
+
+    const signatureHeader = `algorithm=RSA256,keyVersion=1,signature=${encodedSignature}`;
 
     return res.status(200).json({
       signature: signatureHeader,
-      debug: { stringToSign }
+      debug: { stringToSign, bodyStr }
     });
   } catch (err) {
     console.error('[Sign] Error:', err);
     return res.status(500).json({
       error: 'Failed to generate signature',
-      message: err.message || String(err)
+      message: err && err.message ? err.message : String(err)
     });
   }
 }
