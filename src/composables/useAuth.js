@@ -175,7 +175,11 @@ export function useAuth() {
 
     const { signature } = await signRes.json()
 
+    const { debug } = await signRes.json()
+
     window.alert(`[exchangeAuthCode] Received signature from backend:\n\n${signature}\n\nNow calling VodaPay token endpoint...`)
+
+    window.alert('[exchangeAuthCode] Body String:\n\n' + JSON.stringify(debug, null, 2))
 
     const tokenResponse = await fetch('https://vodapay-gateway.sandbox.vfs.africa/v2/authorizations/applyTokenSigned', {
       method: 'POST',

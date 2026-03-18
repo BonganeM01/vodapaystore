@@ -35,21 +35,6 @@ function buildStringToSign(method, path, clientId, requestTime, body) {
   return { stringToSign: firstLine + '\n' + secondLine, bodyStr: bodyStrTrimmed };
 }
 
-// function buildStringToSign(method, path, clientId, requestTime, body) {
-
-//   let bodyStr = '';
-//   if (typeof body === 'string') {
-//     bodyStr = body;
-//   } else if (body && typeof body === 'object') {
-//     bodyStr = JSON.stringify(body); // no spacing
-//   }
-
-//   // <HTTP_METHOD> <HTTP_URI>\n<Client-Id>.<Request-Time>.<HTTP_BODY>
-//   const firstLine = `${String(method || '').toUpperCase()} ${path || ''}`;
-//   const secondLine = `${clientId || ''}.${requestTime || ''}.${bodyStr}`;
-//   return { stringToSign: `${firstLine}\n${secondLine}`, bodyStr };
-// }
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
