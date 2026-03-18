@@ -109,7 +109,18 @@ import crypto from 'crypto'
 
 //Helpers
 function uniquePaymentRequestId() {
-  return Date.now().toString(36) + crypto.randomUUID().replace(/-/g, '');
+  const ts = Date.now().toString(36);
+
+  // 16 random bytes → 32 hex chars
+  const arr = new Uint8Array(16);
+  crypto.getRandomValues(arr);
+
+  let hex = '';
+  for (let i = 0; i < arr.length; i++) {
+    hex += arr[i].toString(16).padStart(2, '0');
+  }
+
+  return ts + hex;
 }
 
 
