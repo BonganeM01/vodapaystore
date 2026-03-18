@@ -118,7 +118,6 @@ export function useAuth() {
   }
 
   //Helper
-  
   function generateRequestTime() {
     const d = new Date(Date.now() + 2 * 3600000); // shift UTC to +02:00
     const pad = n => (n < 10 ? '0' + n : n);
