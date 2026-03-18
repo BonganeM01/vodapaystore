@@ -137,16 +137,16 @@ export function usePayment() {
         paymentRequestId: `PAY_${Date.now()}`,
         paymentRedirectUrl: "https://vodapaystore.vercel.app/checkout",
         paymentExpiryTime: new Date(Date.now() + 30 * 60 * 1000).toISOString().replace('Z', '+02:00'),
-        paymentAmount: { currency: "ZAR", value: totalAmount.toString() },
+        paymentAmount: { currency: "ZAR", value: totalAmount.toString() || '2000' },
         order: {
           goods: {
             referenceGoodsId: items[0]?.product?.id?.toString() || "goods123",
-            goodsUnitAmount: { currency: "ZAR", value: totalAmount.toString() },
+            goodsUnitAmount: { currency: "ZAR", value: totalAmount.toString() || '2000' },
             goodsName: items[0]?.product?.name || "VodaPay Store Purchase"
           },
           env: { terminalType: "MINI_APP" },
           orderDescription: "VodaPay Store Purchase",
-          buyer: { referenceBuyerId: authStore.user?.id || "anonymous" }
+          buyer: { referenceBuyerId: authStore.user?.id }
         },
         extendInfo: "{}"
       }
