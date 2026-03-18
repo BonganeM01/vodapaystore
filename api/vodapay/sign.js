@@ -5,20 +5,34 @@ function normalizeHeader(headers, name) {
   // Accept both canonical case and lowercase to avoid breaking callers
   return headers[name] || headers[name.toLowerCase()] || headers[name.replace(/-/g, '').toLowerCase()];
 }
+function buildStringToSign(method, path, headers, body) {
+  // 1. First line: METHOD & PATH
+  let lines = [`${String(method || '').toUpperCase()} ${String(path || '')}`];
 
-function buildStringToSign(method, path, clientId, requestTime, body) {
+  // 2. Header lines: client-id and request-time only, lowercase keys
+  const clientId = headers['Client-Id'] || headers['client-id'];
+  const requestTime = headers['Request-Time'] || headers['request-time'];
 
+  if (clientId) {
+    lines.push(`client-id:${clientId}`);
+  }
+  if (requestTime) {
+    lines.push(`request-time:${requestTime}`);
+  }
+
+  // 3. Body line
   let bodyStr = '';
   if (typeof body === 'string') {
     bodyStr = body;
   } else if (body && typeof body === 'object') {
-    bodyStr = JSON.stringify(body); // no spacing
+    bodyStr = JSON.stringify(body); //no extra spaces
   }
 
-  // <HTTP_METHOD> <HTTP_URI>\n<Client-Id>.<Request-Time>.<HTTP_BODY>
-  const firstLine = `${String(method || '').toUpperCase()} ${path || ''}`;
-  const secondLine = `${clientId || ''}.${requestTime || ''}.${bodyStr}`;
-  return { stringToSign: `${firstLine}\n${secondLine}`, bodyStr };
+  if (bodyStr) {
+    lines.push(bodyStr);
+  }
+
+  return lines.join('\n');
 }
 
 export default async function handler(req, res) {
@@ -46,7 +60,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Private key not configured' });
     }
 
-    const { stringToSign, bodyStr } = buildStringToSign(method, path, clientId, requestTime, body);
+    const stringToSign = buildStringToSign(method, path, headers, body);
 
     console.log('String to sign:\n', stringToSign);
     console.log('Request time: ', requestTime);
