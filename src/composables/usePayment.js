@@ -106,6 +106,40 @@ import { useVodaPayBridge } from './useVodaPayBridge'
 import { useCartStore } from '@/stores/cart'
 import { useAuthStore } from '@/stores/auth'
 import crypto from 'crypto'
+
+//Helpers
+function uniquePaymentRequestId() {
+  // 32–64 chars unique ID
+  const ts = Date.now().toString(36);
+  const rnd = crypto.randomBytes(12).toString('hex'); // 24 chars
+  return `${ts}${rnd}`; 
+}
+
+function toLocalISO(date = new Date()) {
+  // Formats to ISO-8601 with timezone offset
+  const off = date.getTimezoneOffset();
+  const absoff = Math.abs(off);
+  const d = new Date(date.getTime() - off * 60 * 1000);
+  const base = d.toISOString().substring(0, 23);
+  const sign = off > 0 ? '-' : '+';
+  const hh = String(Math.floor(absoff / 60)).padStart(2, '0');
+  const mm = String(absoff % 60).padStart(2, '0');
+  return `${base}${sign}${hh}:${mm}`;
+}
+
+function generateRequestTime() {
+  const d = new Date(Date.now() + 2 * 3600000); // shift UTC to +02:00
+  const pad = n => (n < 10 ? '0' + n : n);
+
+  return (
+    d.getUTCFullYear() + '-' +
+    pad(d.getUTCMonth() + 1) + '-' +
+    pad(d.getUTCDate()) + 'T' +
+    pad(d.getUTCHours()) + ':' +
+    pad(d.getUTCMinutes()) + ':' +
+    pad(d.getUTCSeconds()) +
+    '+02:00');
+}
  
 export function usePayment() {
   const { sendToMiniProgram, onMessage } = useVodaPayBridge()
@@ -116,40 +150,7 @@ export function usePayment() {
   const error     = ref(null)
   const lastResult = ref(null)
 
-  //helpers
-  function uniquePaymentRequestId() {
-    // 32–64 chars unique ID
-    const ts = Date.now().toString(36);
-    const rnd = crypto.randomBytes(12).toString('hex'); // 24 chars
-    return `${ts}${rnd}`; 
-  }
   
-  function toLocalISO(date = new Date()) {
-    // Formats to ISO-8601 with timezone offset
-    const off = date.getTimezoneOffset();
-    const absoff = Math.abs(off);
-    const d = new Date(date.getTime() - off * 60 * 1000);
-    const base = d.toISOString().substring(0, 23);
-    const sign = off > 0 ? '-' : '+';
-    const hh = String(Math.floor(absoff / 60)).padStart(2, '0');
-    const mm = String(absoff % 60).padStart(2, '0');
-    return `${base}${sign}${hh}:${mm}`;
-  }
-
-  function generateRequestTime() {
-    const d = new Date(Date.now() + 2 * 3600000); // shift UTC to +02:00
-    const pad = n => (n < 10 ? '0' + n : n);
-
-    return (
-      d.getUTCFullYear() + '-' +
-      pad(d.getUTCMonth() + 1) + '-' +
-      pad(d.getUTCDate()) + 'T' +
-      pad(d.getUTCHours()) + ':' +
-      pad(d.getUTCMinutes()) + ':' +
-      pad(d.getUTCSeconds()) +
-      '+02:00');
-  }
- 
   async function pay() {
     loading.value = true
     error.value   = null
