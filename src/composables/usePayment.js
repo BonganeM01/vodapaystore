@@ -109,11 +109,9 @@ import crypto from 'crypto'
 
 //Helpers
 function uniquePaymentRequestId() {
-  // 32–64 chars unique ID
-  const ts = Date.now().toString(36);
-  const rnd = crypto.randomBytes(12).toString('hex'); // 24 chars
-  return `${ts}${rnd}`; 
+  return Date.now().toString(36) + crypto.randomUUID().replace(/-/g, '');
 }
+
 
 function toLocalISO(date = new Date()) {
   // Formats to ISO-8601 with timezone offset
