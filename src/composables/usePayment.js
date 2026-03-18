@@ -108,21 +108,6 @@ import { useAuthStore } from '@/stores/auth'
 import crypto from 'crypto'
 
 //Helpers
-function uniquePaymentRequestId() {
-  const ts = Date.now().toString(36);
-
-  // 16 random bytes → 32 hex chars
-  const arr = new Uint8Array(16);
-  crypto.webcrypto.getRandomValues(arr);
-
-  let hex = '';
-  for (let i = 0; i < arr.length; i++) {
-    hex += arr[i].toString(16).padStart(2, '0');
-  }
-
-  return ts + hex;
-}
-
 
 function toLocalISO(date = new Date()) {
   // Formats to ISO-8601 with timezone offset
@@ -175,14 +160,14 @@ export function usePayment() {
       const CLIENT_ID = '2020122653946739963336'
       const requestTime = generateRequestTime()
 
-      const paymentRequestId = uniquePaymentRequestId().toString();
+      //const paymentRequestId = uniquePaymentRequestId().toString();
       const paymentExpiryTime = toLocalISO(new Date(Date.now() + 30 * 60 * 1000)).toString();
  
       const body = {
         productCode: "CASHIER_PAYMENT",
         salesCode: "51051000101000000011",
         paymentNotifyUrl: "https://vodapaystore.vercel.app/api/notify",
-        paymentRequestId: paymentRequestId,
+        paymentRequestId: "c0a83b171613987371793100153921",
         paymentRedirectUrl: "https://vodapaystore.vercel.app/checkout",
         paymentExpiryTime: paymentExpiryTime,
         paymentAmount: { currency: "ZAR", value: '2000' },
