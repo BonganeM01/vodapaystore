@@ -105,6 +105,7 @@ import { ref } from 'vue'
 import { useVodaPayBridge } from './useVodaPayBridge'
 import { useCartStore } from '@/stores/cart'
 import { useAuthStore } from '@/stores/auth'
+import crypto from 'crypto'
  
 export function usePayment() {
   const { sendToMiniProgram, onMessage } = useVodaPayBridge()
