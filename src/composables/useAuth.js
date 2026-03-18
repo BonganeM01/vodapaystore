@@ -117,6 +117,23 @@ export function useAuth() {
 
   }
 
+  //Helper
+  
+  function generateRequestTime() {
+    const d = new Date(Date.now() + 2 * 3600000); // shift UTC to +02:00
+    const pad = n => (n < 10 ? '0' + n : n);
+
+    return (
+      d.getUTCFullYear() + '-' +
+      pad(d.getUTCMonth() + 1) + '-' +
+      pad(d.getUTCDate()) + 'T' +
+      pad(d.getUTCHours()) + ':' +
+      pad(d.getUTCMinutes()) + ':' +
+      pad(d.getUTCSeconds()) +
+      '+02:00');
+  }
+
+
   // Exchange auth code → access token only
   async function exchangeAuthCode(authCode) {
 
@@ -127,8 +144,8 @@ export function useAuth() {
     }
  
     const CLIENT_ID = '2020122653946739963336'
-    const requestTime = ' 2026-07-29T15:32:09.000+02:00'
-    //const requestTime = new Date().toISOString().replace('Z', '+02:00')
+    //const requestTime = ' 2026-07-29T15:32:09.000+02:00'
+    const requestTime = generateRequestTime();
     //const signatureHeader = 'algorithm=RSA256,keyVersion=1,signature=testing_signatur'
 
     // Get signature from backend
