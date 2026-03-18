@@ -1,15 +1,11 @@
 // api/vodapay/sign.js
 import crypto from 'crypto';
 
-function normalizeHeader(headers, name) {
-  // Accept both canonical case and lowercase to avoid breaking callers
-  return headers[name] || headers[name.toLowerCase()] || headers[name.replace(/-/g, '').toLowerCase()];
-}
 function buildStringToSign(method, path, headers, body) {
   // 1. First line: METHOD & PATH
   let lines = [`${String(method || '').toUpperCase()} ${String(path || '')}`];
 
-  // 2. Header lines: client-id and request-time only, lowercase keys
+  // 2. Header lines: client-id and request-time only
   const clientId = headers['Client-Id'] || headers['client-id'];
   const requestTime = headers['Request-Time'] || headers['request-time'];
 
@@ -20,18 +16,19 @@ function buildStringToSign(method, path, headers, body) {
     lines.push(`request-time:${requestTime}`);
   }
 
-  // 3. Body line
+  // 3. Body line: no extra spaces)
   let bodyStr = '';
   if (typeof body === 'string') {
     bodyStr = body;
   } else if (body && typeof body === 'object') {
-    bodyStr = JSON.stringify(body); //no extra spaces
+    bodyStr = JSON.stringify(body); // no extra spaces
   }
 
   if (bodyStr) {
     lines.push(bodyStr);
   }
 
+  // Join with newlines
   return lines.join('\n');
 }
 
@@ -42,16 +39,16 @@ export default async function handler(req, res) {
 
   try {
     const { method, path, headers, body } = req.body || {};
+
     if (!method || !path || !headers) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Pull required header values
-    const clientId = normalizeHeader(headers, 'Client-Id');
-    const requestTime = normalizeHeader(headers, 'Request-Time') || normalizeHeader(headers, 'request-time');
+    const clientId = headers['Client-Id'] || headers['client-id'];
+    const requestTime = headers['Request-Time'] || headers['request-time'];
 
     if (!clientId || !requestTime) {
-      return res.status(400).json({ error: 'Missing Client-Id or Request-Time header values' });
+      return res.status(400).json({ error: 'Missing Client-Id or Request-Time' });
     }
 
     const PRIVATE_KEY = process.env.VODAPAY_PRIVATE_KEY;
@@ -61,31 +58,25 @@ export default async function handler(req, res) {
     }
 
     const stringToSign = buildStringToSign(method, path, headers, body);
+    console.log('[Sign] String to sign:\n' + stringToSign);
 
-    console.log('String to sign:\n', stringToSign);
-    console.log('Request time: ', requestTime);
-
-    const privateKeyObj = crypto.createPrivateKey(PRIVATE_KEY, 'utf8');
+    const privateKeyObj = crypto.createPrivateKey(PRIVATE_KEY, 'otf8');
     const signer = crypto.createSign('RSA-SHA256');
     signer.write(stringToSign);
     signer.end();
-    const encodedSignature = signer.sign(privateKeyObj, 'base64');
+    const signature = signer.sign(privateKeyObj, 'base64');
 
-    console.log('Private Key:\n', PRIVATE_KEY);
-    
-    console.log('Generated Signature:\n', encodedSignature);
-
-    const signatureHeader = `algorithm=RSA256,keyVersion=1,signature=${encodedSignature}`;
+    const signatureHeader = `algorithm=RSA256,keyVersion=1,signature=${signature}`;
 
     return res.status(200).json({
       signature: signatureHeader,
-      debug: { stringToSign, bodyStr }
+      debug: { stringToSign }
     });
   } catch (err) {
     console.error('[Sign] Error:', err);
     return res.status(500).json({
       error: 'Failed to generate signature',
-      message: err && err.message ? err.message : String(err)
+      message: err.message || String(err)
     });
   }
 }
