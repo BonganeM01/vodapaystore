@@ -1,4 +1,16 @@
-// api/notify.js
+export const config = {
+  api: { bodyParser: false }
+};
+
+function getRawBody(req) {
+  return new Promise((resolve, reject) => {
+    let chunks = [];
+    req.on('data', c => chunks.push(c));
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     console.log('[Notify] Invalid method:', req.method);
@@ -6,44 +18,44 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1. Forward original VodaPay headers + body to validation
-    const validationResponse = await fetch(`https://vodapaystore.vercel.app/api/vodapay/validate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'signature': req.headers['signature'] || '',
-        'client-id': req.headers['client-id'] || '',
-        'response-time': req.headers['response-time'] || req.headers['request-time'] || ''
-      },
-      body: JSON.stringify(req.body)
-    });
+    const rawBody = (await getRawBody(req)).toString();
+
+    const validationResponse = await fetch(
+      `https://vodapaystore.vercel.app/api/vodapay/validate`,
+      {
+        method: 'POST',
+        headers: {
+          'signature': req.headers['signature'] || '',
+          'client-id': req.headers['client-id'] || '',
+          'request-time': req.headers['request-time'] || ''
+        },
+        body: rawBody
+      }
+    );
 
     const validationResult = await validationResponse.json();
-
     console.log('[Notify] Validation result:', validationResult);
 
     if (!validationResult.success) {
-      console.warn('[Notify] Invalid signature from VodaPay:', validationResult.error);
-      // return 200 — webhook must be acknowledged
-      return res.status(200).json({ success: false, message: 'Signature invalid - ignored' });
+      return res.status(200).json({
+        success: false,
+        message: 'Signature invalid - ignored'
+      });
     }
 
-    // 2. Signature is valid → process the notification
-    const payload = req.body;
-
+    const payload = JSON.parse(rawBody);
     console.log('[Notify] Valid webhook received:', payload);
 
-    // Example: extract useful fields (adjust according to your actual payload)
     const paymentUrl = payload.paymentUrl || payload.redirectUrl;
 
     if (!paymentUrl) {
-      console.warn('[Notify] Incomplete payload - missing key fields');
-      return res.status(200).json({ success: true, message: 'Incomplete payload - ignored' });
+      return res.status(200).json({
+        success: true,
+        message: 'Incomplete payload - ignored'
+      });
     }
 
-    //should have business logic here in production
-
-    console.log(`[Notify] Processing payment:  ${paymentUrl}`);
+    console.log(`[Notify] Processing payment: ${paymentUrl}`);
 
     return res.status(200).json({
       success: true,
@@ -52,7 +64,6 @@ export default async function handler(req, res) {
 
   } catch (err) {
     console.error('[Notify] Webhook processing error:', err);
-    // Always return 200 to VodaPay, even on error
     return res.status(200).json({
       success: false,
       message: 'Processing error - will retry later'
