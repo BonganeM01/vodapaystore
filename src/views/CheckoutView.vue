@@ -33,7 +33,7 @@ async function handlePayment() {
       paymentStatus.value = 'success'
     }
   } catch (e) {
-    paymentStatus.value = 'success'
+    paymentStatus.value = 'error'
   }
 }
 </script>

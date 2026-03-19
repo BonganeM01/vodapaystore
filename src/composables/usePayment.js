@@ -108,7 +108,6 @@ import { useAuthStore } from '@/stores/auth'
 import crypto from 'crypto'
 
 //Helpers
-
 function toLocalISO(date = new Date()) {
   // Formats to ISO-8601 with timezone offset
   const off = date.getTimezoneOffset();
@@ -167,7 +166,7 @@ export function usePayment() {
         productCode: "CASHIER_PAYMENT",
         salesCode: "51051000101000000011",
         paymentNotifyUrl: "https://vodapaystore.vercel.app/api/notify",
-        paymentRequestId: "c0a83b171613987371793100153921",
+        paymentRequestId: "c0a83b171613987371793100153820",
         paymentRedirectUrl: "https://vodapaystore.vercel.app/checkout",
         paymentExpiryTime: paymentExpiryTime,
         paymentAmount: { currency: "ZAR", value: '2000' },

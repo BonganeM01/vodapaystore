@@ -2,7 +2,7 @@
 import crypto from 'crypto';
 
 export default async function handler(req, res) {
-  // Only allow POST (VodaPay uses POST for notifications/callbacks)
+  // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -60,12 +60,14 @@ export default async function handler(req, res) {
     const stringToSign = `POST ${req.url}\n${sortedHeaders}\n${rawBody}`;
 
     // 4. Verify signature
+    const publicKeyObj = crypto.createPublicKey(PUBLIC_KEY, 'utf8');
     const verifier = crypto.createVerify('RSA-SHA256');
-    verifier.update(stringToSign);
-    const isValid = verifier.verify(PUBLIC_KEY, signature, 'base64');
+    verifier.write(stringToSign);
+    verifier.end();
+    const isValid = verifier.verify(publicKeyObj, signature, 'base64');
 
     if (isValid) {
-      // do extra checks
+      // extra checks
       const now = Date.now();
       const requestTs = new Date(requestTime).getTime();
       const timeDiff = Math.abs(now - requestTs) / 1000;
