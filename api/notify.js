@@ -1,3 +1,4 @@
+// api/notify.js
 export const config = {
   api: { bodyParser: false }
 };
@@ -18,44 +19,66 @@ export default async function handler(req, res) {
   }
 
   try {
-    const rawBody = (await getRawBody(req)).toString();
+    // Get raw body first
+    const rawBodyBuffer = await getRawBody(req);
+    const rawBody = rawBodyBuffer.toString('utf8');
 
+    // Extract headers (VodaPay uses lowercase or mixed case)
+    const signatureHeader = req.headers['signature'];
+    const clientId = req.headers['client-id'];
+    const responseTime = req.headers['response-time'];
+
+    if (!signatureHeader || !clientId || !responseTime) {
+      console.warn('[Notify] Missing required headers');
+      return res.status(200).json({ success: false, message: 'Missing headers - ignored' });
+    }
+
+    // Forward to your validate endpoint
     const validationResponse = await fetch(
-      `https://vodapaystore.vercel.app/api/vodapay/validate`,
+      `https://${req.headers.host}/api/vodapay/validate`,
       {
         method: 'POST',
         headers: {
-          'signature': req.headers['signature'] || '',
-          'client-id': req.headers['client-id'] || '',
-          'request-time': req.headers['request-time'] || ''
+          'Content-Type': 'application/json',
+          'signature': signatureHeader,
+          'client-id': clientId,
+          'response-time': responseTime
         },
-        body: rawBody
+        body: JSON.stringify(rawBody)
       }
     );
 
     const validationResult = await validationResponse.json();
+
     console.log('[Notify] Validation result:', validationResult);
 
     if (!validationResult.success) {
-      return res.status(200).json({
-        success: false,
-        message: 'Signature invalid - ignored'
-      });
+      console.warn('[Notify] Invalid signature from A+/VodaPay:', validationResult.error);
+      return res.status(200).json({ success: false, message: 'Invalid signature - ignored' });
     }
 
-    const payload = JSON.parse(rawBody);
+    // Signature is valid → parse and process payload
+    let payload;
+    try {
+      payload = JSON.parse(rawBody);
+    } catch (e) {
+      console.error('[Notify] Invalid JSON in payload:', e);
+      return res.status(200).json({ success: false, message: 'Invalid JSON - ignored' });
+    }
+
     console.log('[Notify] Valid webhook received:', payload);
 
-    const paymentUrl = payload.paymentUrl || payload.redirectUrl;
+    // Extract useful fields
+    const paymentUrl = payload.redirectActionForm?.redirectUrl || payload.redirectUrl;
 
     if (!paymentUrl) {
-      return res.status(200).json({
-        success: true,
-        message: 'Incomplete payload - ignored'
-      });
+      console.warn('[Notify] Incomplete payload');
+      return res.status(200).json({ success: true, message: 'Incomplete payload - ignored' });
     }
 
-    console.log(`[Notify] Processing payment: ${paymentUrl}`);
+    console.log(`[Notify] Processing payment : ${paymentUrl}`);
+
+    // TReal business logic here
 
     return res.status(200).json({
       success: true,
@@ -64,6 +87,7 @@ export default async function handler(req, res) {
 
   } catch (err) {
     console.error('[Notify] Webhook processing error:', err);
+    // ALWAYS return 200 to VodaPay
     return res.status(200).json({
       success: false,
       message: 'Processing error - will retry later'

@@ -24,7 +24,7 @@ function buildStringToSign(method, path, clientId, requestTime, body) {
   const requestTimeStr = String(requestTime || '').trim();
   const bodyStrTrimmed = String(bodyStr || '').trim();
 
-  // First line: "<HTTP_METHOD> <HTTP_URI>" (no double spaces)
+  // First line: "<HTTP_METHOD> <HTTP_URI>"
   const firstLine = [methodStr, pathStr].filter(Boolean).join(' ');
 
   // Second line: "<Client-Id>.<Request-Time>.<HTTP_BODY>" with no extra spaces

@@ -166,7 +166,7 @@ export function usePayment() {
         productCode: "CASHIER_PAYMENT",
         salesCode: "51051000101000000011",
         paymentNotifyUrl: "https://vodapaystore.vercel.app/api/notify",
-        paymentRequestId: "c0a83b171613987371793100153392",
+        paymentRequestId: "c0a83b171613987371793100153539",
         paymentRedirectUrl: "https://vodapaystore.vercel.app/checkout",
         paymentExpiryTime: paymentExpiryTime,
         paymentAmount: { currency: "ZAR", value: '2000' },
@@ -222,6 +222,7 @@ export function usePayment() {
         throw new Error('No paymentUrl received')
       }
  
+      //continue with payment if response signature is valid
       const result = await triggerPayment(paymentUrl)
  
       lastResult.value = result
