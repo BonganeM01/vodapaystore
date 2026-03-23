@@ -158,15 +158,13 @@ export function usePayment() {
  
       const CLIENT_ID = '2020122653946739963336'
       const requestTime = generateRequestTime()
-
-      //const paymentRequestId = uniquePaymentRequestId().toString();
       const paymentExpiryTime = toLocalISO(new Date(Date.now() + 30 * 60 * 1000)).toString();
  
       const body = {
         productCode: "CASHIER_PAYMENT",
         salesCode: "51051000101000000011",
         paymentNotifyUrl: "https://vodapaystore.vercel.app/api/notify",
-        paymentRequestId: "c0a83b1716139873717931001530209",
+        paymentRequestId: "c0a83b1716139873717931001530912",
         paymentRedirectUrl: "https://vodapaystore.vercel.app/checkout",
         paymentExpiryTime: paymentExpiryTime,
         paymentAmount: { currency: "ZAR", value: '2000' },
