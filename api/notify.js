@@ -104,7 +104,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: false, message: 'Invalid JSON' });
     }
 
-    console.log('[Notify] Valid webhook payload:', JSON.stringify(payload));
+    console.log('[Notify] Valid webhook payload:', JSON.stringify(payload, null, 2));
 
     // Extract useful fields
     const paymentId = payload.paymentId;
@@ -112,7 +112,7 @@ export default async function handler(req, res) {
 
     if (!paymentId || !paymentRequestId) {
       console.warn('[Notify] Incomplete payload');
-      return res.status(200).json({ success: true, message: 'Incomplete payload — ignored' });
+      return res.status(200).json({ success: true, message: 'Incomplete payload' });
     }
 
     console.log(`[Notify] Processing payment ${paymentId} → Payment Request ID: ${paymentRequestId}`);
