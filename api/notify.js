@@ -26,12 +26,12 @@ export default async function handler(req, res) {
     // Extract headers
     const signatureHeader = req.headers['signature'] || req.headers['Signature'];
     const clientId = req.headers['client-id'] || req.headers['Client-Id'];
-    const responseTime = req.headers['request-time'] || req.headers['Request-Time'];
+    const requestTime = req.headers['request-time'] || req.headers['Request-Time'];
 
     console.log('[Notify] FULL INCOMING HEADERS:', JSON.stringify(req.headers, null, 2));
 
-    if (!signatureHeader || !clientId || !responseTime) {
-      console.warn('[Notify] Missing required headers', { 'Signature': signatureHeader, 'Client-Id': clientId, 'Response-Time': responseTime });
+    if (!signatureHeader || !clientId || !requestTime) {
+      console.warn('[Notify] Missing required headers', { 'Signature': signatureHeader, 'Client-Id': clientId, 'Request-Time': requestTime   });
       return res.status(200).json({ success: false, message: 'Missing headers - ignored' });
     }
 
