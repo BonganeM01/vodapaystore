@@ -1,3 +1,5 @@
+import { S } from "vue-router/dist/router-CWoNjPRp.mjs";
+
 // api/notify.js
 export const config = {
   api: { bodyParser: false }
@@ -29,7 +31,7 @@ export default async function handler(req, res) {
     const responseTime = req.headers['response-time'] || req.headers['Response-Time'];
 
     if (!signatureHeader || !clientId || !responseTime) {
-      console.warn('[Notify] Missing required headers');
+      console.warn('[Notify] Missing required headers', { 'Signature': signatureHeader, 'Client-Id': clientId, 'Response-Time': responseTime });
       return res.status(200).json({ success: false, message: 'Missing headers - ignored' });
     }
 
