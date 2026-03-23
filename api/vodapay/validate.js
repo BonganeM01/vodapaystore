@@ -22,12 +22,12 @@ export default async function handler(req, res) {
   try {
     const signatureHeader = req.headers['signature'];
     const clientId = req.headers['client-id'];
-    const responseTime = req.headers['response-time'];
+    const requestTime = req.headers['request-time'];
 
-    if (!signatureHeader || !clientId || !responseTime) {
+    if (!signatureHeader || !clientId || !requestTime) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required headers: Signature, Client-Id or Response-Time'
+        error: 'Missing required headers: Signature, Client-Id or Request-Time'
       });
     }
 

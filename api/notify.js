@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     // Extract headers
     const signatureHeader = req.headers['signature'] || req.headers['Signature'];
     const clientId = req.headers['client-id'] || req.headers['Client-Id'];
-    const responseTime = req.headers['response-time'] || req.headers['Response-Time'];
+    const responseTime = req.headers['request-time'] || req.headers['Request-Time'];
 
     console.log('[Notify] FULL INCOMING HEADERS:', JSON.stringify(req.headers, null, 2));
 
