@@ -1,5 +1,3 @@
-import { S } from "vue-router/dist/router-CWoNjPRp.mjs";
-
 // api/notify.js
 export const config = {
   api: { bodyParser: false }
