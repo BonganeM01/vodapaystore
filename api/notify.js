@@ -1,6 +1,7 @@
 // api/notify.js
 import crypto from 'crypto';
 
+// api/notify.js
 export const config = {
   api: { bodyParser: false }
 };
@@ -21,31 +22,39 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Get raw body — must be used exactly as received for signature
     const rawBodyBuffer = await getRawBody(req);
     const rawBody = rawBodyBuffer.toString('utf8');
 
-    // Extract headers
+    // Extract relevant headers (case-insensitive lookup)
     const signatureHeader = req.headers['signature'] || req.headers['Signature'];
     const clientId = req.headers['client-id'] || req.headers['Client-Id'];
-    const responseTime = req.headers['response-time'] || req.headers['Response-Time'] || '';
+    const responseTime = req.headers['response-time'] || req.headers['Response-Time'];
 
+    // Log everything for debugging
     console.log('[Notify] FULL INCOMING HEADERS:', JSON.stringify(req.headers, null, 2));
-    console.log('[Notify] Extracted client-id:', clientId);
-    console.log('[Notify] Extracted response-time:', responseTime || '(MISSING)');
-    console.log('[Notify] Raw body length:', rawBody.length);
+    console.log('[Notify] Raw body (first 500 chars):', rawBody.slice(0, 500));
+    console.log('[Notify] Extracted client-id:', clientId || '(missing)');
+    console.log('[Notify] Extracted response-time:', responseTime || '(missing)');
+    console.log('[Notify] Signature header:', signatureHeader || '(missing)');
 
     if (!signatureHeader) {
-      console.warn('[Notify] No signature header received');
+      console.warn('[Notify] No signature header received — cannot validate');
       return res.status(200).json({ success: false, message: 'No signature received from A+' });
     }
 
-    // string-to-sign 
-    const stringToSign = [
-      `POST ${req.url}`,
-      `${clientId || ''}.${responseTime}.${rawBody}`
-    ].join('\n');
+    // build string to sign
+    let stringToSign = `POST ${req.url}\n`;
 
-    console.log('[Notify] String to sign:\n' + stringToSign);
+    // client-id.response-time.raw-body
+    const secondLineParts = [];
+    if (clientId) secondLineParts.push(clientId);
+    if (responseTime) secondLineParts.push(responseTime);
+    secondLineParts.push(rawBody);
+
+    stringToSign += secondLineParts.join('.');
+
+    console.log('[Notify] String to sign (official format):\n' + stringToSign);
 
     // Parse signature header
     const sigParts = signatureHeader.split(',');
@@ -59,54 +68,58 @@ export default async function handler(req, res) {
     const signature = sigMap.signature;
 
     if (algorithm !== 'RSA256' || !signature) {
-      console.warn('[Notify] Invalid signature format');
-      return res.status(200).json({ success: false, message: 'Invalid signature format' });
+      console.warn('[Notify] Invalid signature format:', signatureHeader);
+      return res.status(200).json({ success: false, message: 'Invalid signature format — ignored' });
     }
 
     const PUBLIC_KEY = process.env.VODAPAY_PUBLIC_KEY;
     if (!PUBLIC_KEY) {
       console.error('[Notify] Public key not configured');
-      return res.status(200).json({ success: false, message: 'Server misconfigured - no public key provided' });
+      return res.status(200).json({ success: false, message: 'Server misconfigured — ignored' });
     }
 
-    // Verify signature
-    const publicKeyObj = crypto.createPublicKey(PUBLIC_KEY, 'utf8');
+    // Verify
     const verifier = crypto.createVerify('RSA-SHA256');
-    verifier.write(stringToSign);
-    verifier.end();
-    const isValid = verifier.verify(publicKeyObj, signature, 'base64');
+    verifier.update(stringToSign, 'utf8');
+    const isValid = verifier.verify(PUBLIC_KEY, signature, 'base64');
 
     if (!isValid) {
-      console.warn('[Notify] Signature validation FAILED');
-      return res.status(200).json({ success: false, message: 'Invalid signature' });
+      console.warn('[Notify] Signature verification FAILED');
+      return res.status(200).json({ success: false, message: 'Invalid signature — ignored' });
     }
 
-    console.log('[Notify] Signature is VALID ✓');
+    console.log('[Notify] Signature VALID ✓');
 
     // Parse payload
     let payload;
     try {
       payload = JSON.parse(rawBody);
     } catch (e) {
-      console.error('[Notify] Invalid JSON payload');
-      return res.status(200).json({ success: false, message: 'Invalid JSON' });
+      console.error('[Notify] Invalid JSON payload:', e);
+      return res.status(200).json({ success: false, message: 'Invalid JSON — ignored' });
     }
 
     console.log('[Notify] Valid webhook payload received');
 
-    // Extract useful fields
-    const paymentId = payload.paymentId;
-    const paymentRequestId = payload.paymentRequestId;
+    // Extract useful fields (adjust based on real payload)
+    const paymentId = payload.paymentId || payload.referencePaymentId;
+    const status = payload.paymentStatus || payload.status || payload.result?.resultStatus;
+    const orderId = payload.order?.referenceOrderId || payload.referenceOrderId;
 
-    console.log(`[Notify] Processing payment ${paymentId || 'unknown'} → Payment Request ID: ${paymentRequestId || 'unknown'}`);
+    if (!paymentId || !status) {
+      console.warn('[Notify] Incomplete payload');
+      return res.status(200).json({ success: true, message: 'Incomplete payload — ignored' });
+    }
 
-    // real business logic here
+    console.log(`[Notify] Processing payment ${paymentId} → status: ${status}, order: ${orderId || 'unknown'}`);
 
-    return res.status(200).json({ success: true, message: 'Webhook processed successfully' });
+    // business logic here (update DB, send email, etc.)
+
+    return res.status(200).json({ success: true, message: 'Webhook processed' });
 
   } catch (err) {
-    console.error('[Notify] Webhook processing error:', err);
-    return res.status(200).json({ success: false, message: 'Processing error - will retry later' });
+    console.error('[Notify] Webhook error:', err);
+    return res.status(200).json({ success: false, message: 'Processing error' });
   }
 }
  
