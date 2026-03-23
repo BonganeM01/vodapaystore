@@ -25,9 +25,10 @@ export default async function handler(req, res) {
     const requestTime = req.headers['request-time'];
 
     if (!signatureHeader || !clientId || !requestTime) {
+      console.warn('[Validate Signature] Missing required headers', { 'Signature': signatureHeader, 'Client-Id': clientId, 'Request-Time': requestTime });
       return res.status(400).json({
         success: false,
-        error: 'Missing required headers: Signature, Client-Id or Request-Time'
+        error: 'Missing required headers: Signature, Client-Id or Request-Time '
       });
     }
 
@@ -42,6 +43,7 @@ export default async function handler(req, res) {
     const signature = sigMap.signature;
 
     if (algorithm !== 'RSA256' || !signature) {
+      console.warn('[Validate Signature] Unsupported signature format:', signatureHeader);
       return res.status(400).json({
         success: false,
         error: 'Invalid or unsupported signature format'
@@ -50,6 +52,7 @@ export default async function handler(req, res) {
 
     const PUBLIC_KEY = process.env.VODAPAY_PUBLIC_KEY;
     if (!PUBLIC_KEY) {
+      console.error('[Validate Signature] Public key not configured on server');
       return res.status(500).json({
         success: false,
         error: 'Public key not configured on server'
@@ -58,7 +61,7 @@ export default async function handler(req, res) {
 
     const sortedHeaders = [
       `client-id:${clientId}`,
-      `response-time:${responseTime}`
+      `request-time:${requestTime}`
     ].sort().join('\n');
 
     const rawBody = (await getRawBody(req)).toString();
