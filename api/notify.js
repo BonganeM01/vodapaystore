@@ -29,13 +29,15 @@ export default async function handler(req, res) {
     // Extract relevant headers (case-insensitive lookup)
     const signatureHeader = req.headers['signature'] || req.headers['Signature'];
     const clientId = req.headers['client-id'] || req.headers['Client-Id'];
-    const responseTime = req.headers['response-time'] || req.headers['Response-Time'];
+    //const responseTime = req.headers['response-time'] || req.headers['Response-Time'];
+    const requestTime = req.headers['request-time'] || req.headers['Request-Time'];
 
     // Log everything for debugging
     console.log('[Notify] FULL INCOMING HEADERS:', JSON.stringify(req.headers, null, 2));
     console.log('[Notify] Raw body (first 500 chars):', rawBody.slice(0, 500));
     console.log('[Notify] Extracted client-id:', clientId || '(missing)');
-    console.log('[Notify] Extracted response-time:', responseTime || '(missing)');
+    //console.log('[Notify] Extracted response-time:', responseTime || '(missing)');
+    console.log('[Notify] Extracted request-time:', requestTime || '(missing)');
     console.log('[Notify] Signature header:', signatureHeader || '(missing)');
 
     if (!signatureHeader) {
@@ -49,7 +51,8 @@ export default async function handler(req, res) {
     // client-id.response-time.raw-body
     const secondLineParts = [];
     if (clientId) secondLineParts.push(clientId);
-    if (responseTime) secondLineParts.push(responseTime);
+    //if (responseTime) secondLineParts.push(responseTime);
+    if (requestTime) secondLineParts.push(requestTime);
     secondLineParts.push(rawBody);
 
     stringToSign += secondLineParts.join('.');
@@ -79,9 +82,11 @@ export default async function handler(req, res) {
     }
 
     // Verify
+    const publicKeyObj = crypto.createPublicKey(PUBLIC_KEY, 'utf8');
     const verifier = crypto.createVerify('RSA-SHA256');
-    verifier.update(stringToSign, 'utf8');
-    const isValid = verifier.verify(PUBLIC_KEY, signature, 'base64');
+    verifier.write(stringToSign);
+    verifier.end();
+    const isValid = verifier.verify(publicKeyObj, signature, 'base64');
 
     if (!isValid) {
       console.warn('[Notify] Signature verification FAILED');
@@ -102,16 +107,15 @@ export default async function handler(req, res) {
     console.log('[Notify] Valid webhook payload received');
 
     // Extract useful fields (adjust based on real payload)
-    const paymentId = payload.paymentId || payload.referencePaymentId;
-    const status = payload.paymentStatus || payload.status || payload.result?.resultStatus;
-    const orderId = payload.order?.referenceOrderId || payload.referenceOrderId;
+    const paymentId = payload.paymentId;
+    const paymentRequestId = payload.paymentRequestId;
 
-    if (!paymentId || !status) {
+    if (!paymentId || !paymentRequestId) {
       console.warn('[Notify] Incomplete payload');
       return res.status(200).json({ success: true, message: 'Incomplete payload — ignored' });
     }
 
-    console.log(`[Notify] Processing payment ${paymentId} → status: ${status}, order: ${orderId || 'unknown'}`);
+    console.log(`[Notify] Processing payment ${paymentId} → Payment Request ID: ${paymentRequestId}`);
 
     // business logic here (update DB, send email, etc.)
 
