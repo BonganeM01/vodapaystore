@@ -44,7 +44,7 @@ export default async function handler(req, res) {
           'Content-Type': 'application/json',
           'signature': signatureHeader,
           'client-id': clientId,
-          'response-time': responseTime
+          'response-time': requestTime
         },
         body: JSON.stringify(rawBody)
       }
