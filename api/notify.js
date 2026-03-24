@@ -29,15 +29,15 @@ export default async function handler(req, res) {
     // Extract relevant headers (case-insensitive lookup)
     const signatureHeader = req.headers['signature'] || req.headers['Signature'];
     const clientId = req.headers['client-id'] || req.headers['Client-Id'];
-    const responseTime = req.headers['response-time'] || req.headers['Response-Time'];
-    //const requestTime = req.headers['request-time'] || req.headers['Request-Time'];
+    //const responseTime = req.headers['response-time'] || req.headers['Response-Time'];
+    const requestTime = req.headers['request-time'] || req.headers['Request-Time'];
 
     // Log everything for debugging
     console.log('[Notify] FULL INCOMING HEADERS:', JSON.stringify(req.headers, null, 2));
     console.log('[Notify] Raw body (first 500 chars):', rawBody.slice(0, 500));
     console.log('[Notify] Extracted client-id:', clientId || '(missing)');
-    console.log('[Notify] Extracted response-time:', responseTime || '(missing)');
-    //console.log('[Notify] Extracted request-time:', requestTime || '(missing)');
+    //console.log('[Notify] Extracted response-time:', responseTime || '(missing)');
+    console.log('[Notify] Extracted request-time:', requestTime || '(missing)');
     console.log('[Notify] Signature header:', signatureHeader || '(missing)');
 
     if (!signatureHeader) {
@@ -45,14 +45,14 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: false, message: 'No signature received from A+' });
     }
     
-    if (!clientId || !responseTime) {
+    if (!clientId || !requestTime) {
       console.warn('[Notify] Missing A+ mandatory headers for callback signature check');
       return res.status(200).json({ success: false, message: 'Missing headers: client-id/response-time' });
     }
 
     // build string to sign
     let stringToSign = `POST ${req.url}\n`;
-    stringToSign += `${clientId}.${responseTime}.${rawBody}`;
+    stringToSign += `${clientId}.${requestTime}.${rawBody}`;
 
     console.log('[Notify] String to sign:\n' + stringToSign);
 
