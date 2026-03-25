@@ -116,6 +116,8 @@ export default async function handler(req, res) {
     // response to A+
     const responseTime = new Date().toISOString().replace('Z','+02:00');
 
+    const CLIENT_ID = '2020122653946739963336'
+
     const successResponseBody = {
       result: {
         resultCode: "SUCCESS",
@@ -145,20 +147,20 @@ export default async function handler(req, res) {
       console.warn('[Notify] Failed to generate response signature: \n', JSON.stringify(signRes))
     }
 
-    // const successResponse = await fetch('https://vodapaystore.vercel.app/api/notify', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'Client-Id': clientId,
-    //     'Response-Time': responseTime,
-    //     'Signature': signature
-    //   },
-    //   body: JSON.stringify(successResponseBody)
-    // })
+    const successResponse = await fetch('https://vodapaystore.vercel.app/api/notify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Client-Id': CLIENT_ID,
+        'Response-Time': responseTime,
+        'Signature': signature
+      },
+      body: JSON.stringify(successResponseBody)
+    })
 
-    //const officialRes = await successResponse.json();
+    const officialRes = await successResponse.json();
 
-    //console.log('successResponse Full payload:\n', JSON.stringify(officialRes));
+    console.log('successResponse Full payload:\n', JSON.stringify(officialRes));
 
     console.log('[Notify] Sending success response back to A+');
 
