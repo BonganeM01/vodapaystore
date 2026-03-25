@@ -1,7 +1,6 @@
 // api/notify.js
 import crypto from 'crypto';
 
-// api/notify.js
 export const config = {
   api: { bodyParser: false }
 };
@@ -114,9 +113,50 @@ export default async function handler(req, res) {
 
     console.log(`[Notify] Processing payment ${paymentId} → Payment Request ID: ${paymentRequestId}`);
 
-    // business logic here (update DB, send email, etc.)
+    // response to A+
+    const responseTime = new Date().toISOString().replace('Z','+02:00');
 
-    return res.status(200).json({ success: true, message: 'Webhook processed' });
+    const successResponseBody = {
+      result: {
+        resultCode: "SUCCESS",
+        resultStatus: "S",
+        resultMessage: "success"
+      }
+    }
+
+    const responseHeadersForSign = {
+      'Client-Id': clientId,
+      'Response-Time': responseTime
+    }
+
+    // Generate signature
+    const signRes = await fetch(`https://vodapaystore.vercel.app/api/vodapay/sign`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        method: 'POST',
+        path: 'https://vodapaystore.vercel.app/api/notify',
+        headers: responseHeadersForSign,
+        body: successResponse
+      })
+    });
+
+    const { signatureRes } = await signRes.json();
+
+    const successResponse = await fetch('https://vodapaystore.vercel.app/api/notify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Client-Id': clientId,
+        'Response-Time': responseTime,
+        'Signature': signatureRes
+      },
+      body: JSON.stringify(successResponseBody)
+    })
+
+    console.log('[Notify] Sending success response back to A+');
+
+    return res.status(200).json(successResponse);
 
   } catch (err) {
     console.error('[Notify] Webhook error:', err);
