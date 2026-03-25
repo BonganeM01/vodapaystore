@@ -115,8 +115,9 @@ export default async function handler(req, res) {
 
     // response to A+
     const responseTime = new Date().toISOString().replace('Z','+02:00');
-
-    const CLIENT_ID = '2020122653946739963336'
+    const CLIENT_ID = '2020122653946739963336';
+    const NOTIFY_URL = 'https://vodapaystore.vercel.app/api/notify';
+    const METHOD = 'POST';
 
     const successResponseBody = {
       result: {
@@ -131,10 +132,10 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        method: 'POST',
-        path: 'https://vodapaystore.vercel.app/api/notify',
+        method: METHOD,
+        path: NOTIFY_URL,
         headers: {
-          'Client-Id': clientId,
+          'Client-Id': CLIENT_ID,
           'Request-Time': responseTime
         },
         body: JSON.stringify(successResponseBody)
@@ -147,24 +148,22 @@ export default async function handler(req, res) {
       console.warn('[Notify] Failed to generate response signature: \n', JSON.stringify(signRes))
     }
 
-    const successResponse = await fetch('https://vodapaystore.vercel.app/api/notify', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Client-Id': CLIENT_ID,
-        'Response-Time': responseTime,
-        'Signature': signature
-      },
-      body: JSON.stringify(successResponseBody)
-    })
-
-    const officialRes = await successResponse.json();
-
-    console.log('successResponse Full payload:\n', JSON.stringify(officialRes));
+    // const responseHeaders = {
+    //   'Content-Type': 'application/json',
+    //   'Client-Id': CLIENT_ID,
+    //   'Response-Time': responseTime,
+    //   'Signature': signature
+    // }
 
     console.log('[Notify] Sending success response back to A+');
-
-    return res.status(200).json(successResponseBody);
+    
+    return res
+      .status(200)
+      .setHeader('Content-Type', 'application/json')
+      .setHeader('Client-Id', CLIENT_ID)
+      .setHeader('Response-Time', responseTime)
+      .setHeader('Signature', signature)
+      .json(successResponseBody);
 
   } catch (err) {
     console.error('[Notify] Webhook error:', err);
