@@ -64,9 +64,9 @@ export default async function handler(req, res) {
     }, {});
 
     const algorithm = sigMap.algorithm;
-    const signature = sigMap.signature;
+    const signatureToValidate = sigMap.signature;
 
-    if (algorithm !== 'RSA256' || !signature) {
+    if (algorithm !== 'RSA256' || !signatureToValidate) {
       console.warn('[Notify] Invalid signature format:', signatureHeader);
       return res.status(200).json({ success: false, message: 'Invalid signature format' });
     }
@@ -82,7 +82,7 @@ export default async function handler(req, res) {
     const verifier = crypto.createVerify('RSA-SHA256');
     verifier.write(stringToSign);
     verifier.end();
-    const isValid = verifier.verify(publicKeyObj, signature, 'base64');
+    const isValid = verifier.verify(publicKeyObj, signatureToValidate, 'base64');
 
     if (!isValid) {
       console.warn('[Notify] Signature verification FAILED');
@@ -130,7 +130,7 @@ export default async function handler(req, res) {
     }
 
     // Generate signature
-    const signRes = await fetch(`https://vodapaystore.vercel.app/api/vodapay/sign`, {
+    const signRes = await fetch(`https://${req.headers.host}/api/vodapay/sign`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -141,8 +141,7 @@ export default async function handler(req, res) {
       })
     });
 
-    const signBody = await signRes.json();
-    const signatureRes = signBody.signature;
+    const { signature } = await signRes.json();
 
     // const successResponse = await fetch('https://vodapaystore.vercel.app/api/notify', {
     //   method: 'POST',
@@ -155,8 +154,8 @@ export default async function handler(req, res) {
     //   body: JSON.stringify(successResponseBody)
     // })
 
-    if(!signatureRes){
-      console.warn('[Notify] Failed to generate response signature')
+    if(!signature){
+      console.warn('[Notify] Failed to generate response signature: \n', JSON.stringify(signRes))
     }
 
     console.log('[Notify] Sending success response back to A+');
