@@ -133,7 +133,7 @@ export default async function handler(req, res) {
         path: 'https://vodapaystore.vercel.app/api/notify',
         headers: {
           'Client-Id': clientId,
-          'Request-Time': responseTime
+          'Response-Time': responseTime
         },
         body: JSON.stringify(successResponseBody)
       })
@@ -141,20 +141,20 @@ export default async function handler(req, res) {
 
     const { signature } = await signRes.json();
 
+    if(!signature){
+      console.warn('[Notify] Failed to generate response signature: \n', JSON.stringify(signRes))
+    }
+
     // const successResponse = await fetch('https://vodapaystore.vercel.app/api/notify', {
     //   method: 'POST',
     //   headers: {
     //     'Content-Type': 'application/json',
     //     'Client-Id': clientId,
     //     'Response-Time': responseTime,
-    //     'Signature': signatureRes
+    //     'Signature': signature
     //   },
     //   body: JSON.stringify(successResponseBody)
     // })
-
-    if(!signature){
-      console.warn('[Notify] Failed to generate response signature: \n', JSON.stringify(signRes))
-    }
 
     console.log('[Notify] Sending success response back to A+');
 
