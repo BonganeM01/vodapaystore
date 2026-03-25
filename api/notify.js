@@ -141,7 +141,8 @@ export default async function handler(req, res) {
       })
     });
 
-    const { signatureRes } = await signRes.json();
+    const signBody = await signRes.json();
+    const signatureRes = signBody.signature;
 
     // const successResponse = await fetch('https://vodapaystore.vercel.app/api/notify', {
     //   method: 'POST',
