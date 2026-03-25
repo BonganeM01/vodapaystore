@@ -124,11 +124,6 @@ export default async function handler(req, res) {
       }
     }
 
-    const responseHeadersForSign = {
-      'Client-Id': clientId,
-      'Response-Time': responseTime
-    }
-
     // Generate signature
     const signRes = await fetch(`https://${req.headers.host}/api/vodapay/sign`, {
       method: 'POST',
@@ -136,8 +131,11 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         method: 'POST',
         path: 'https://vodapaystore.vercel.app/api/notify',
-        headers: responseHeadersForSign,
-        body: successResponseBody
+        headers: {
+          'Client-Id': clientId,
+          'Request-Time': responseTime
+        },
+        body: JSON.stringify(successResponseBody)
       })
     });
 
