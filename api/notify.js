@@ -137,26 +137,30 @@ export default async function handler(req, res) {
         method: 'POST',
         path: 'https://vodapaystore.vercel.app/api/notify',
         headers: responseHeadersForSign,
-        body: successResponse
+        body: successResponseBody
       })
     });
 
     const { signatureRes } = await signRes.json();
 
-    const successResponse = await fetch('https://vodapaystore.vercel.app/api/notify', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Client-Id': clientId,
-        'Response-Time': responseTime,
-        'Signature': signatureRes
-      },
-      body: JSON.stringify(successResponseBody)
-    })
+    // const successResponse = await fetch('https://vodapaystore.vercel.app/api/notify', {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'Client-Id': clientId,
+    //     'Response-Time': responseTime,
+    //     'Signature': signatureRes
+    //   },
+    //   body: JSON.stringify(successResponseBody)
+    // })
+
+    if(!signatureRes){
+      console.warn('[Notify] Failed to generate response signature')
+    }
 
     console.log('[Notify] Sending success response back to A+');
 
-    return res.status(200).json(successResponse);
+    return res.status(200).json(successResponseBody);
 
   } catch (err) {
     console.error('[Notify] Webhook error:', err);
