@@ -148,14 +148,16 @@ export default async function handler(req, res) {
       console.warn('[Notify] Failed to generate response signature: \n', JSON.stringify(signRes))
     }
 
+    console.log('[Notify] Signature: \n', signature)
+
     console.log('[Notify] Sending success response back to A+');
     
     return res
       .status(200)
-      .setHeader('Content-Type', 'application/json')
-      .setHeader('Client-Id', CLIENT_ID)
-      .setHeader('Response-Time', responseTime)
-      .setHeader('Signature', signature)
+      .setHeader('content-type', 'application/json')
+      .setHeader('client-id', CLIENT_ID)
+      .setHeader('response-time', responseTime)
+      .setHeader('signature', signature)
       .json(successResponseBody);
 
   } catch (err) {
