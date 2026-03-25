@@ -43,6 +43,7 @@ export default async function handler(req, res) {
   try {
     const { method, path, headers, body } = req.body || {};
     if (!method || !path || !headers) {
+      console.log('Method :', method, '\nPath: ' ,path, '\nHeaders: ', headers)
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
