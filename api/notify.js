@@ -138,7 +138,7 @@ export default async function handler(req, res) {
           'Client-Id': CLIENT_ID,
           'Response-Time': responseTime
         },
-        body: JSON.stringify(successResponseBody)
+        body: successResponseBody
       })
     });
 
