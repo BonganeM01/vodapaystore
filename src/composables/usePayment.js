@@ -163,8 +163,8 @@ export function usePayment() {
       const body = {
         productCode: "CASHIER_PAYMENT",
         salesCode: "51051000101000000011",
-        paymentNotifyUrl: "https://hkdk.events/tihdzni2mki6b9",
-        paymentRequestId: "c0a83b1716139873717931001530667",
+        paymentNotifyUrl: "https://vodapaystore.vercel.app/api/notify",
+        paymentRequestId: "c0a83b1716139873717931001530669",
         paymentRedirectUrl: "https://vodapaystore.vercel.app/checkout",
         paymentExpiryTime: paymentExpiryTime,
         paymentAmount: { currency: "ZAR", value: '2000' },

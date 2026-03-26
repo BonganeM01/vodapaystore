@@ -160,13 +160,17 @@ export default async function handler(req, res) {
 
     console.log('[Notify] Sending success response back to A+');
     
-    return res
+    
+    res
       .status(200)
       .setHeader('content-type', 'application/json')
       .setHeader('client-id', CLIENT_ID)
       .setHeader('response-time', responseTime)
-      .setHeader('signature', signature)
-      .json(successResponseBody);
+      .setHeader('signature', signature);
+
+    return res.end(JSON.stringify(successResponseBody));
+
+    console.log('[Notify] About to send ACK with headers:', res.getHeaders());
 
   } catch (err) {
     console.error('[Notify] Webhook error:', err);
