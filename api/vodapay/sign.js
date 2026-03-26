@@ -48,8 +48,8 @@ export default async function handler(req, res) {
     }
 
     // Pull required header values
-    const clientId = normalizeHeader(headers, 'client-id');
-    const requestTime = normalizeHeader(headers, 'request-Time') || normalizeHeader(headers, 'response-Time');
+    const clientId = normalizeHeader(headers, 'client-id') || normalizeHeader(headers, 'Client-Id');
+    const requestTime = normalizeHeader(headers, 'request-time') || normalizeHeader(headers, 'Request-Time') || normalizeHeader(headers, 'response-time') || normalizeHeader(headers, 'Response-Time');
 
     if (!clientId || !requestTime) {
       return res.status(400).json({ error: 'Missing Client-Id or Request-Time header values' });
