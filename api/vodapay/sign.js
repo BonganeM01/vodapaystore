@@ -48,8 +48,8 @@ export default async function handler(req, res) {
     }
 
     // Pull required header values
-    const clientId = normalizeHeader(headers, 'Client-Id');
-    const requestTime = normalizeHeader(headers, 'Request-Time') || normalizeHeader(headers, 'Response-Time');
+    const clientId = normalizeHeader(headers, 'client-id');
+    const requestTime = normalizeHeader(headers, 'request-Time') || normalizeHeader(headers, 'response-Time');
 
     if (!clientId || !requestTime) {
       return res.status(400).json({ error: 'Missing Client-Id or Request-Time header values' });
@@ -64,7 +64,7 @@ export default async function handler(req, res) {
     const { stringToSign, bodyStr } = buildStringToSign(method, path, clientId, requestTime, body);
 
     console.log('String to sign:\n', stringToSign);
-    console.log('Request time: ', requestTime);
+    console.log('Time Stamp: ', requestTime);
 
     const privateKeyObj = crypto.createPrivateKey(PRIVATE_KEY, 'utf8');
     const signer = crypto.createSign('RSA-SHA256');
