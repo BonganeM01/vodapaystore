@@ -142,7 +142,15 @@ export default async function handler(req, res) {
       })
     });
 
-    const { signature } = await signRes.json();
+    const signPayload = await signRes.json();
+
+    const signature = signPayload.signature;
+
+    console.log('Whole signature payload:\n', JSON.stringify(signPayload));
+
+    //const { signature } = await signRes.json();
+
+    //log the payload
 
     if(!signature){
       console.warn('[Notify] Failed to generate response signature: \n', JSON.stringify(signRes))
