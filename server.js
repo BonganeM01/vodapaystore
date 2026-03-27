@@ -2,42 +2,34 @@ import express from 'express';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import fs from 'fs';
- 
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
- 
+
 const app = express();
 const PORT = process.env.PORT || 3000;
- 
-// Serve static files (your built Vue app)
-app.use(express.static(join(__dirname, 'dist')));
- 
-// API routes - Render will serve files from /api folder
-app.use('/api', (req, res, next) => {
-  const apiPath = join(__dirname, 'api', req.path);
-  // Try to find the handler
-  if (fs.existsSync(apiPath + '.js')) {
-    import(`./api${req.path}.js`)
-      .then(module => {
-        if (typeof module.default === 'function') {
-          return module.default(req, res);
-        }
-        res.status(500).send('Invalid API handler');
-      })
-      .catch(err => {
-        console.error('API error:', err);
-        res.status(500).send('API error');
-      });
-  } else {
-    next();
-  }
+
+// --- RAW BODY FOR /api/notify ---
+app.post('/api/notify', express.raw({ type: '*/*' }), async (req, res) => {
+  const module = await import('./api/notify.js');
+  req.body = req.body; // raw Buffer for your signature validator
+  return module.default(req, res);
 });
- 
-// Fallback - serve index.html for Vue Router
-app.get('*', (req, res) => {
+
+// --- JSON BODY FOR SIGN ROUTE ---
+app.post('/api/vodapay/sign', express.json(), async (req, res) => {
+  const module = await import('./api/vodapay/sign.js');
+  return module.default(req, res);
+});
+
+// --- Serve your Vue app ---
+app.use(express.static(join(__dirname, 'dist')));
+
+// --- Vue Router fallback (ONLY for non-API routes) ---
+app.get(/^\/(?!api\/).*/, (req, res) => {
   res.sendFile(join(__dirname, 'dist', 'index.html'));
 });
- 
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
