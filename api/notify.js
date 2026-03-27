@@ -130,13 +130,13 @@ export default async function handler(req, res) {
     // Generate signature
     const signRes = await fetch(`https://${req.headers.host}/api/vodapay/sign`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         method: METHOD,
         path: NOTIFY_URL,
         headers: {
-          'Client-Id': CLIENT_ID,
-          'Response-Time': responseTime
+          'client-id': CLIENT_ID,
+          'response-time': responseTime
         },
         body: successResponseBody
       })
@@ -164,6 +164,8 @@ export default async function handler(req, res) {
       .setHeader('response-time', responseTime)
       .setHeader('signature', signature);
 
+      console.log('[Notify] OUTGOING HEADERS:', res.getHeaders());
+      
     return res.end(JSON.stringify(successResponseBody));
 
   } catch (err) {
