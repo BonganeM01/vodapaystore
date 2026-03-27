@@ -22,13 +22,20 @@ app.post('/api/vodapay/sign', express.json(), async (req, res) => {
   return module.default(req, res);
 });
 
-// --- Serve your Vue app ---
-app.use(express.static(join(__dirname, 'dist')));
+// // --- Serve your Vue app ---
+// app.use(express.static(join(__dirname, 'dist')));
 
-// --- Vue Router fallback (ONLY for non-API routes) ---
-app.get(/^\/(?!api\/).*/, (req, res) => {
+// // --- Vue Router fallback (ONLY for non-API routes) ---
+// app.get(/^\/(?!api\/).*/, (req, res) => {
+//   res.sendFile(join(__dirname, 'dist', 'index.html'));
+// });
+
+
+app.use(express.static(join(__dirname, 'dist')));
+app.get('*', (req, res) => {
   res.sendFile(join(__dirname, 'dist', 'index.html'));
 });
+
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
