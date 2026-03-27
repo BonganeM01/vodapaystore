@@ -105,7 +105,6 @@ import { ref } from 'vue'
 import { useVodaPayBridge } from './useVodaPayBridge'
 import { useCartStore } from '@/stores/cart'
 import { useAuthStore } from '@/stores/auth'
-import crypto from 'crypto'
 
 //Helpers
 function toLocalISO(date = new Date()) {
@@ -164,7 +163,7 @@ export function usePayment() {
         productCode: "CASHIER_PAYMENT",
         salesCode: "51051000101000000011",
         paymentNotifyUrl: "https://vodapay-notify.onrender.com/api/notify",
-        paymentRequestId: "c0a83b1716139873717931001530548",
+        paymentRequestId: "c0a83b1716139873717931001530549",
         paymentRedirectUrl: "https://vodapaystore.vercel.app/checkout",
         paymentExpiryTime: paymentExpiryTime,
         paymentAmount: { currency: "ZAR", value: '2000' },
