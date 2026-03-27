@@ -128,15 +128,15 @@ export default async function handler(req, res) {
     }
 
     // Generate signature
-    const signRes = await fetch(`https://${req.headers.host}/api/vodapay/sign`, {
+    const signRes = await fetch(`https://vodapaystore.vercel.app/api/vodapay/sign`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         method: METHOD,
         path: NOTIFY_URL,
         headers: {
-          'client-id': CLIENT_ID,
-          'response-time': responseTime
+          'Client-Id': CLIENT_ID,
+          'Response-Time': responseTime
         },
         body: successResponseBody
       })
@@ -157,16 +157,14 @@ export default async function handler(req, res) {
     console.log('[Notify] Sending success response back to A+');
     
     
-    res
-      .status(200)
-      .setHeader('content-type', 'application/json')
-      .setHeader('client-id', CLIENT_ID)
-      .setHeader('response-time', responseTime)
-      .setHeader('signature', signature);
+    res.setHeader('content-type', 'application/json');
+    res.setHeader('client-id', CLIENT_ID);
+    res.setHeader('response-time', responseTime);
+    res.setHeader('signature', signature);
 
-      console.log('[Notify] OUTGOING HEADERS:', res.getHeaders());
-      
-    return res.end(JSON.stringify(successResponseBody));
+    console.log('[Notify] OUTGOING HEADERS:', res.getHeaders());
+
+    return res.status(200).json(successResponseBody);
 
   } catch (err) {
     console.error('[Notify] Webhook error:', err);
