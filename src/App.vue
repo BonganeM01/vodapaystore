@@ -71,7 +71,7 @@ onMounted(() => {
 
   cleanups.push(
     onMessage('OPEN_CART', () => {
-      console.log('[App.vue] Received OPEN_CART from Mini App — navigating to /cart')
+      window.alert('[App.vue] Received OPEN_CART from Mini App — navigating to /cart')
       router.push('/cart')
     })
   )
