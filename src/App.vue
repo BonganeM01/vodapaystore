@@ -71,8 +71,14 @@ onMounted(() => {
 
   cleanups.push(
     onMessage('OPEN_CART', () => {
-      window.alert('[App.vue] Received OPEN_CART from Mini App — navigating to /cart')
-      router.push('/cart')
+    console.log('[App.vue] Received OPEN_CART from Mini App')
+    router.push('/cart')
+    // Fallback if router.push doesn't work
+    setTimeout(() => {
+      if (window.location.hash !== '#/cart') {
+        window.location.hash = '#/cart'
+      }
+      }, 100)
     })
   )
 
