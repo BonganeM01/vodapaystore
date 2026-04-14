@@ -54,7 +54,7 @@ onMounted(() => {
     })
   )
  
-  // listen for direct USER_INFO_SUCCESS if mini-app sends it separately
+  // listen for direct USER_INFO_SUCCESS
   cleanups.push(
     onMessage('USER_INFO_SUCCESS', (data) => {
       console.log('[App.vue] Received USER_INFO_SUCCESS:', data.userInfo)
@@ -62,13 +62,20 @@ onMounted(() => {
     })
   )
  
-  // handle auth code success (for debugging/logging)
+  // handle auth code success (for debugging)
   cleanups.push(
     onMessage('AUTH_CODE_SUCCESS', (data) => {
       console.log('[App.vue] Auth code received:', data.authCode)
-      // You can show a toast here if you want UI feedback
     })
   )
+
+  cleanups.push(
+    onMessage('OPEN_CART', () => {
+      console.log('[App.vue] Received OPEN_CART from Mini App — navigating to /cart')
+      router.push('/cart')
+    })
+  )
+
 })
  
 onUnmounted(() => {
