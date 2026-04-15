@@ -63,7 +63,7 @@ function handleShare() {
 
 function handleDeepLink() {
   my.call('deeplink', {
-    uri: 'vodapaywallet://deeplink.htm?action=miniapp&miniappId=3460020233327716'
+    uri: 'https://app.adjust.com/jau3fuy?deep_link=vodapaywallet%3A%2F%2Fdeeplink.htm%3Faction%3Dminiapp%26miniappId%3D3460020233327716'
   }, (res) => {
     const { success, errorCode } = res
     if (success) {
