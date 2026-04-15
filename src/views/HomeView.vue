@@ -38,7 +38,6 @@ const filteredProducts = computed(() => {
   })
 })
 
-// Show login prompt if redirected here after auth-required action
 const showLoginPrompt = computed(() => route.query.loginRequired === '1')
 
 async function handleLogin() {
@@ -53,11 +52,9 @@ async function handleLogin() {
 
 function addToCart(product) {
   cartStore.addItem(product)
-  // The cart store automatically notifies Mini Program via bridge
 }
 
 function handleShare() {
-  // ✅ Trigger native VodaPay share sheet via Mini Program bridge
   sendToMiniProgram('SHARE', {
     title: 'VodaPay Store',
     desc: 'Shop and pay with VodaPay',
@@ -84,7 +81,6 @@ function handleDeepLink() {
 <template>
   <article class="home-view">
 
-    <!-- Hero banner -->
     <section class="hero">
       <header class="hero-content">
         <h2 class="hero-title">Welcome to<br><span class="brand">VodaPay Store</span></h2>
@@ -93,21 +89,19 @@ function handleDeepLink() {
       <button class="share-btn" @click="handleShare" aria-label="Share app">
         <span>Share</span>
       </button>
-      <button class="deeplink-btn" @click="handleDeepLink" aria-label="Share app">
+      <button class="deeplink-btn" @click="handleDeepLink" aria-label="Deep Link to Mini App">
         <span>Deep Link</span>
       </button>
     </section>
 
-    <!-- Login prompt (shown on auth redirect) -->
     <section v-if="showLoginPrompt" class="login-prompt card">
       <p class="prompt-text">Sign in with VodaPay to continue</p>
-      <!-- ✅ Login button triggers the VodaPay OAuth flow via bridge -->
+
       <button class="btn-primary" :disabled="authLoading" @click="handleLogin">
         {{ authLoading ? 'Signing in…' : 'Sign in with VodaPay' }}
       </button>
     </section>
 
-    <!-- Search -->
     <section class="search-section">
       <search class="search-wrap">
         <label for="search" class="sr-only">Search products</label>
@@ -122,7 +116,6 @@ function handleDeepLink() {
       </search>
     </section>
 
-    <!-- Category filters -->
     <nav class="categories" aria-label="Product categories">
       <button
         v-for="cat in categories"
@@ -135,7 +128,6 @@ function handleDeepLink() {
       </button>
     </nav>
 
-    <!--Products grid -->
     <section class="products-section">
       <header class="section-header">
         <h3 class="section-title">{{ selectedCategory === 'All' ? 'All Products' : selectedCategory }}</h3>
