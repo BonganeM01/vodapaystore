@@ -63,6 +63,22 @@ function handleShare() {
     desc: 'Shop and pay with VodaPay',
   })
 }
+
+function handleDeepLink() {
+  my.call('deeplink', {
+    uri: 'https://app.adjust.com/30q9i84?deep_link=vodapaywallet%3A%2F%2Fdeeplink.htm%3Faction%3Dminiapp%26miniappId%3D3460020189168338'
+  }, (res) => {
+    const { success, errorCode } = res
+    if (success) {
+      console.log('[HomeView] Deeplink successful')
+      window.alert('[HomeView] Successfully opened target Mini App')
+    } else {
+      console.error('[HomeView] Deeplink failed:', errorCode)
+      window.alert('[HomeView] Deeplink failed with error: ' + errorCode)
+    }
+  })
+}
+
 </script>
 
 <template>
@@ -76,6 +92,9 @@ function handleShare() {
       </header>
       <button class="share-btn" @click="handleShare" aria-label="Share app">
         <span>Share</span>
+      </button>
+      <button class="deeplink-btn" @click="handleDeepLink" aria-label="Share app">
+        <span>Deep Link</span>
       </button>
     </section>
 
@@ -167,6 +186,17 @@ function handleShare() {
 .hero-sub { font-size: 13px; color: rgba(255,255,255,0.7); }
 
 .share-btn {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.4);
+  color: #fff;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.deeplink-btn {
   background: rgba(255,255,255,0.2);
   border: 1px solid rgba(255,255,255,0.4);
   color: #fff;
