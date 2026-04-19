@@ -68,10 +68,10 @@ function handleDeepLink() {
     const { success, errorCode } = res
     if (success) {
       console.log('[HomeView] Deeplink successful')
-      window.alert('[HomeView] Successfully opened target Mini App')
+      //window.alert('[HomeView] Successfully opened target Mini App')
     } else {
       console.error('[HomeView] Deeplink failed:', errorCode)
-      window.alert('[HomeView] Deeplink failed with error: ' + errorCode)
+      //window.alert('[HomeView] Deeplink failed with error: ' + errorCode)
     }
   })
 }
