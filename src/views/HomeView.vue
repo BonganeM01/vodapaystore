@@ -54,26 +54,16 @@ function addToCart(product) {
   cartStore.addItem(product)
 }
 
-function handleShare() {
-  sendToMiniProgram('SHARE', {
-    title: 'VodaPay Store',
-    desc: 'Shop and pay with VodaPay',
-  })
+function handleDeepLink() {
+  sendToMiniProgram('HANDLE_DEEP_LINK');
 }
 
-function handleDeepLink() {
-  my.call('deeplink', {
-    uri: 'vodapaywallet://deeplink.htm?action=miniapp&miniappId=3460020233327716'
-  }, (res) => {
-    const { success, errorCode } = res
-    if (success) {
-      console.log('[HomeView] Deeplink successful')
-      //window.alert('[HomeView] Successfully opened target Mini App')
-    } else {
-      console.error('[HomeView] Deeplink failed:', errorCode)
-      //window.alert('[HomeView] Deeplink failed with error: ' + errorCode)
-    }
-  })
+function handleLaunchMiniApp(){
+  sendToMiniProgram('LAUNCH_MINI_APP');
+}
+
+function launchVasApp() {
+  sendToMiniProgram('LAUNCH_VAS_APP');
 }
 
 </script>
@@ -86,12 +76,17 @@ function handleDeepLink() {
         <h2 class="hero-title">Welcome to<br><span class="brand">VodaPay Store</span></h2>
         <p class="hero-sub">Shop. Pay. Done.</p>
       </header>
-      <button class="share-btn" @click="handleShare" aria-label="Share app">
-        <span>Share</span>
-      </button>
-      <button class="deeplink-btn" @click="handleDeepLink" aria-label="Deep Link to Mini App">
-        <span>Deep Link</span>
-      </button>
+      <span>
+        <button class="deeplink-btn" @click="handleDeepLink" aria-label="Deep Link to Mini App">
+          <span>Deep Link</span>
+        </button>
+        <button class="launchmini-btn" @click="handleLaunchMiniApp" aria-label="Launch Mini App">
+          <span>Launch MiniApp</span>
+        </button>
+        <button class="vas-btn" @click="launchVasApp" aria-label="Launch VAS App">
+          <span>Launch VAS App</span>
+        </button>
+      </span>
     </section>
 
     <section v-if="showLoginPrompt" class="login-prompt card">
@@ -189,6 +184,28 @@ function handleDeepLink() {
 }
 
 .deeplink-btn {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.4);
+  color: #fff;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.launchmini-btn {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.4);
+  color: #fff;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.vas-btn {
   background: rgba(255,255,255,0.2);
   border: 1px solid rgba(255,255,255,0.4);
   color: #fff;

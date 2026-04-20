@@ -118,9 +118,7 @@ export function useVodaPayBridge() {
     setupCartListener: () => {
       onMessage('OPEN_CART', () => {
         window.alert('[H5] Mini App requested to open Cart page');
-        // Navigate to Cart
-        // window.location.hash = '#/cart';
-        // OR if using vue-router:
+
         router.push('/cart');
       });
     }
