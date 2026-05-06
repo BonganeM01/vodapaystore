@@ -132,6 +132,28 @@ function generateRequestTime() {
     pad(d.getUTCSeconds()) +
     '+02:00');
 }
+
+function generatePaymentRequestId() {
+  const length = 30;
+
+  const fixedChars = {
+    0: 'c',
+    2: 'a',
+    5: 'b'
+  };
+
+  let result = '';
+
+  for (let i = 0; i < length; i++) {
+    if (fixedChars[i] !== undefined) {
+      result += fixedChars[i];
+    } else {
+      result += Math.floor(Math.random() * 10);
+    }
+  }
+
+  return result;
+}
  
 export function usePayment() {
   const { sendToMiniProgram, onMessage } = useVodaPayBridge()
@@ -158,12 +180,13 @@ export function usePayment() {
       const CLIENT_ID = '2020122653946739963336'
       const requestTime = generateRequestTime()
       const paymentExpiryTime = toLocalISO(new Date(Date.now() + 30 * 60 * 1000)).toString();
+      const paymentRequestId = generatePaymentRequestId()
  
       const body = {
         productCode: "CASHIER_PAYMENT",
         salesCode: "51051000101000000011",
         paymentNotifyUrl: "https://vodapaynotify-production.up.railway.app/api/notify",
-        paymentRequestId: "c0a83b1716139873717931001530008",
+        paymentRequestId: paymentRequestId,
         paymentRedirectUrl: "https://vodapaystore.vercel.app/checkout",
         paymentExpiryTime: paymentExpiryTime,
         paymentAmount: { currency: "ZAR", value: '2000' },
